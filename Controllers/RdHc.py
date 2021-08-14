@@ -20,5 +20,17 @@ class RdHc(IController):
         self.__lock = threading.Lock()
         self.__mqttHandler = mqtt_handler
 
+    async def __hc_handler_mqtt_data(self):
+        while True:
+            await asyncio.sleep(0.1)
+            if not self.__mqttServices.receive_data_queue.empty():
+                with self.__lock:
+                    item = self.__mqttServices.receive_data_queue.get()
+                    self.__mqttHandler.handler(item)
+                    self.__mqttServices.receive_data_queue.task_done()
+
     async def run(self):
-        pass
+        self.__mqttServices.connect()
+        task0 = asyncio.create_task(self.__hc_handler_mqtt_data())
+        tasks = [task0]
+        await asyncio.gather(*tasks)

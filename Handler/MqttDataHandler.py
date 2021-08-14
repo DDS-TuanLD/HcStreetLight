@@ -5,6 +5,7 @@ from Constracts.IHandler import IHandler
 from Constracts.ITransport import ITransport
 from Handler.MqttTypCmdHandlers.TypeCmdHandlerManager import TypeCmdHandlerManager
 
+
 class MqttDataHandler(IHandler):
     __logger: logging.Logger
     __mqtt: ITransport
@@ -16,17 +17,17 @@ class MqttDataHandler(IHandler):
         self.__mqttTypeCmdHandlerManager = TypeCmdHandlerManager(log, mqtt)
 
     def handler(self, item):
-        print("data from mqtt: " + item)
-        self.__logger.debug("data from mqtt: " + item)
+        # print(f"data from mqtt: {item}")
+        # self.__logger.debug(f"data from mqtt: {item}")
 
         topic = item['topic']
-        msg = item['msg']
+        message = item['msg']
         switcher = {
             Const.MQTT_CLOUD_TO_DEVICE_REQUEST_TOPIC: self.__handler_cloud_to_device_request_topic,
-            Const.MQTT_DEVICE_TO_CLOUD_RESPONSE_TOPIC: self.__handler_device_to_cloud_response_topic
+            Const.MQTT_DEVICE_TO_CLOUD_RESPONSE_TOPIC: self.__handler_device_to_cloud_response_topic,
         }
         func = switcher.get(topic)
-        func(msg)
+        func(message)
         return
 
     def __handler_cloud_to_device_request_topic(self, data):
@@ -52,34 +53,33 @@ class MqttDataHandler(IHandler):
             self.__mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
             switcher = {
-                "ConfigGWRF": self.__mqttTypeCmdHandlerManager.ConfigGWRF_Handler.handler,
-                # "DelDev":,
-                # "GetGatewayInfor":,
-                # "PingDevice":,
-                # "PingGateway":,
-                # "RequestInfor":,
-                # "CreateGroup":,
-                # "DelDevFrGroup":,
-                # "DelGroup":,
-                # "RebootGateway":,
-                # "RebootDevice":,
-                # "GatewayCommander":,
-                # "DeviceCommander":,
-                # "ConfigDev":,
-                # "SetScene":,
-                # "DelScene":,
-                # "DelDeviceInScene":,
-                # "ControlRelay":,
-                # "ControlDevice":,
-                # "ActiveScene":,
-                # "StopScene":,
-                # "DeviceFirmURL":,
-                # "GatewayFirmURL":
+                "ConfigGWRF": self.__mqttTypeCmdHandlerManager.ConfigGWRF.handler,
+                "DelDev": self.__mqttTypeCmdHandlerManager.DelDev.handler,
+                "GetGatewayInfor": self.__mqttTypeCmdHandlerManager.GetGatewayInfor.handler,
+                "PingDevice": self.__mqttTypeCmdHandlerManager.PingDevice.handler,
+                "PingGateway": self.__mqttTypeCmdHandlerManager.PingGateway.handler,
+                "RequestInfor": self.__mqttTypeCmdHandlerManager.RequestInfor.handler,
+                "CreateGroup": self.__mqttTypeCmdHandlerManager.CreateGroup.handler,
+                "DelDevFrGroup": self.__mqttTypeCmdHandlerManager.DelDevFrGroup.handler,
+                "DelGroup": self.__mqttTypeCmdHandlerManager.DelGroup.handler,
+                "RebootGateway": self.__mqttTypeCmdHandlerManager.RebootGateway.handler,
+                "RebootDevice": self.__mqttTypeCmdHandlerManager.RebootDevice.handler,
+                "GatewayCommander": self.__mqttTypeCmdHandlerManager.GatewayCommander.handler,
+                "DeviceCommander": self.__mqttTypeCmdHandlerManager.DeviceCommander.handler,
+                "ConfigDev": self.__mqttTypeCmdHandlerManager.ConfigDev.handler,
+                "SetScene": self.__mqttTypeCmdHandlerManager.SetScene.handler,
+                "DelScene": self.__mqttTypeCmdHandlerManager.DelScene.handler,
+                "DelDeviceInScene": self.__mqttTypeCmdHandlerManager.DelDeviceInScene.handler,
+                "ControlRelay": self.__mqttTypeCmdHandlerManager.ControlRelay.handler,
+                "ControlDevice": self.__mqttTypeCmdHandlerManager.ControlDevice.handler,
+                "ActiveScene": self.__mqttTypeCmdHandlerManager.ActiveScene.handler,
+                "StopScene": self.__mqttTypeCmdHandlerManager.StopScene.handler,
+                "DeviceFirmURL": self.__mqttTypeCmdHandlerManager.DeviceFirmURL.handler,
+                "GatewayFirmURL": self.__mqttTypeCmdHandlerManager.GatewayFirmURL.handler,
             }
 
             func = switcher.get(cmd)
             func(data)
-
         except:
             self.__logger.error(f"mqtt data receiver in topic {Const.MQTT_CLOUD_TO_DEVICE_REQUEST_TOPIC} invalid")
             print(f"mqtt data receiver in topic {Const.MQTT_CLOUD_TO_DEVICE_REQUEST_TOPIC} invalid")

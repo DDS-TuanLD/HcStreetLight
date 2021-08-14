@@ -48,7 +48,7 @@ class Mqtt(ITransport):
 
     def __on_connect(self, client, userdata, flags, rc):
         self.__client.subscribe(topic=Const.MQTT_CLOUD_TO_DEVICE_REQUEST_TOPIC, qos=self.__mqttConfig.qos)
-        self.__client.subscribe(topic=Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, qos=self.__mqttConfig.qos)
+        self.__client.subscribe(topic=Const.MQTT_DEVICE_TO_CLOUD_RESPONSE_TOPIC, qos=self.__mqttConfig.qos)
 
     def send(self, destination, send_data):
         self.__client.publish(destination, payload=send_data, qos=Const.MQTT_QOS)
