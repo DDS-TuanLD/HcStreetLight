@@ -1,5 +1,6 @@
 from Table.TableManager import TableManager
 from sqlalchemy.engine.base import Connection
+from ModelServices.DeviceServices import DeviceServices
 
 
 class MetaService(type):
@@ -13,4 +14,8 @@ class MetaService(type):
 
 class ServicesManager(metaclass=MetaService):
     def __init__(self, table: TableManager, context: Connection):
-        pass
+        self.__deviceService = DeviceServices(table.DeviceTable, context)
+
+    @property
+    def DeviceService(self):
+        return self.__deviceService
