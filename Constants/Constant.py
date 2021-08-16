@@ -11,3 +11,7 @@ MQTT_PASS = "1"
 
 # Sqlite connection option
 DB_NAME = "rd.sqlite"
+
+# Hc
+HC_PING_TO_CLOUD_INTERVAL = 15
+HC_REPORT_DEVICE_STATE_INTERVAL = 60
