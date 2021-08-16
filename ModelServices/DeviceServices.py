@@ -1,6 +1,7 @@
 from Repository.DeviceRepo import DeviceRepo
 from sqlalchemy import Table
 from sqlalchemy.engine.base import Connection
+from sqlalchemy.sql.expression import BinaryExpression
 
 
 class MetaDeviceServices(type):
@@ -17,6 +18,13 @@ class DeviceServices(metaclass=MetaDeviceServices):
 
     def __init__(self, DeviceTable: Table, context: Connection):
         self.__deviceRepo = DeviceRepo(DeviceTable, context)
+
+    def UpdateDeviceByCondition(self, condition: BinaryExpression, values: dict):
+        self.__deviceRepo.UpdateByCondition(condition, values)
+
+    def FindDeviceByCondition(self, condition: BinaryExpression):
+        rel = self.__deviceRepo.FindByCondition(condition)
+        return rel
 
     def FindAllDevice(self):
         rel = self.__deviceRepo.FindAll()

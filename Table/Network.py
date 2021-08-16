@@ -8,4 +8,7 @@ class Network:
                              Column('NetworkId', String, primary_key=True, nullable=False),
                              Column('NetworkType', String),
                              Column('NetworkKey', String),
+                             Column('TXPower', Float),
+                             Column('GatewayMac', String),
+                             Column('FirmwareVersion', String),
                              )
