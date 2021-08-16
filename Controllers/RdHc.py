@@ -1,10 +1,14 @@
 import asyncio
+import json
+
 from Database.Db import Db
 import logging
 import threading
 from Constracts.ITransport import ITransport
 from Constracts.IController import IController
 from Constracts.IHandler import IHandler
+import Constants.Constant as Const
+import uuid
 
 
 class RdHc(IController):
@@ -19,6 +23,25 @@ class RdHc(IController):
         self.__mqttServices = mqtt
         self.__lock = threading.Lock()
         self.__mqttHandler = mqtt_handler
+
+    def __hc_report_network_info(self):
+        pass
+
+    async def __hc_update_device_online_to_global(self):
+        pass
+
+    async def __hc_report_device_state(self):
+        await asyncio.sleep(Const.HC_REPORT_DEVICE_STATE_INTERVAL)
+        device_state_mes = {}
+        self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(device_state_mes))
+
+    async def __hc_check_connect_with_cloud(self):
+        await asyncio.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
+        ping_mes = {
+            "RQI": uuid.uuid4(),
+            "TYPCMD": "Ping"
+        }
+        self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(ping_mes))
 
     async def __hc_handler_mqtt_data(self):
         while True:
