@@ -7,6 +7,8 @@ class EventTrigger:
         self.eventTrigger = Table('EventTrigger', metadata,
                                   Column('EventTriggerId', Integer, primary_key=True, nullable=False),
                                   Column('Name', String),
+                                  Column('ScheduleRaw', String),
                                   Column('ScheduleId', Integer),
+                                  Column('ScriptType', Integer),
                                   Column('IsEnable', Boolean),
                                   )

@@ -1,4 +1,4 @@
-from sqlalchemy import Float, Boolean
+from sqlalchemy import Float, Boolean, Integer
 from sqlalchemy import Table, Column, String, MetaData
 
 
@@ -26,7 +26,9 @@ class Device:
                             Column('Tmin', Float),
                             Column('Lmax', Float),
                             Column('Lmin', Float),
-                            Column('FirmwareVersion', Float),
+                            Column('DimInit', Integer),
+                            Column('PRating', Float),
+                            Column('FirmwareVersion', String),
                             Column('IsOnline', Boolean),
                             Column('IsSync', Boolean),
                             )

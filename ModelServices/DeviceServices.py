@@ -29,3 +29,6 @@ class DeviceServices(metaclass=MetaDeviceServices):
     def FindAllDevice(self):
         rel = self.__deviceRepo.FindAll()
         return rel
+
+    def RemoveManyDeviceByDeviceAddress(self, device_address: list):
+        self.__deviceRepo.RemoveManyById(device_address)

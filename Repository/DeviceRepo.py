@@ -3,7 +3,6 @@ from sqlalchemy.sql.expression import BinaryExpression
 from sqlalchemy.engine.base import Connection
 
 
-
 class DeviceRepo:
     __deviceTable: Table
     __context: Connection
@@ -25,3 +24,10 @@ class DeviceRepo:
         ins = self.__deviceTable.select()
         rel = self.__context.execute(ins)
         return rel
+
+    def RemoveManyById(self, data: list):
+        ins = self.__deviceTable.delete().where(self.__deviceTable.c.DeviceAddress.in_(data))
+        try:
+            self.__context.execute(ins)
+        except:
+            pass

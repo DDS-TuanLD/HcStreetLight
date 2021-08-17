@@ -6,6 +6,5 @@ class Property:
     def __init__(self, metadata: MetaData):
         self.property = Table('Property', metadata,
                               Column('PropertyId', Integer, primary_key=True, nullable=False),
-                              Column('Code', String),
-                              Column('Name', String),
+                              Column('Name', String, unique=True),
                               )
