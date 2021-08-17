@@ -12,8 +12,13 @@ class MetaGlobalVariables(type):
 
 class GlobalVariables(metaclass=MetaGlobalVariables):
     def __init__(self):
-        self.__device_online_status_dicts = {}
+        self.__devices_online_status_dict = {}
+        self.__devices_heartbeat_dict = {}
 
     @property
-    def device_online_status_dicts(self):
-        return self.__device_online_status_dicts
+    def devices_online_status_dict(self):
+        return self.__devices_online_status_dict
+
+    @property
+    def devices_heartbeat_dict(self):
+        return self.__devices_heartbeat_dict

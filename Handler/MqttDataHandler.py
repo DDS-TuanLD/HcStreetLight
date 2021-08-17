@@ -36,21 +36,11 @@ class MqttDataHandler(IHandler):
 
         try:
             json_data = json.loads(data)
-            try:
-                rqi = json_data["RQI"]
-            except:
-                rqi = ""
 
             try:
                 cmd = json_data["TYPCMD"]
             except:
                 cmd = ""
-
-            mqttReceiveCommandResponse = {
-                "RQI": rqi
-            }
-
-            self.__mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
             switcher = {
                 "ConfigGWRF": self.__mqttTypeCmdHandlerManager.ConfigGWRF.handler,
@@ -79,7 +69,8 @@ class MqttDataHandler(IHandler):
             }
 
             func = switcher.get(cmd)
-            func(data)
+            func(json_data)
+
         except:
             self.__logger.error(f"mqtt data receiver in topic {Const.MQTT_CLOUD_TO_DEVICE_REQUEST_TOPIC} invalid")
             print(f"mqtt data receiver in topic {Const.MQTT_CLOUD_TO_DEVICE_REQUEST_TOPIC} invalid")
