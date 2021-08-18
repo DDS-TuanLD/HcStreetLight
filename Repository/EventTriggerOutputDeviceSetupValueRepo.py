@@ -30,4 +30,8 @@ class EventTriggerOutputDeviceSetupValueRepo:
 
     def RemoveByCondition(self, condition: BinaryExpression):
         ins = self.__eventTriggerOutputDeviceSetupValueTable.delete().where(condition)
-        self.__context.execute(ins)
+        print(ins)
+        try:
+            self.__context.execute(ins)
+        except Exception as err:
+            print(err)

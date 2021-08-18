@@ -8,6 +8,6 @@ class EventTriggerOutputGroupSetupValue:
                                                        Column('EventTriggerId', Integer, primary_key=True,
                                                               nullable=False),
                                                        Column('GroupId', String, primary_key=True, nullable=False),
-                                                       Column('PropertyId', Integer),
+                                                       Column('PropertyId', Integer, primary_key=True, nullable=False),
                                                        Column('PropertyValue', Float),
                                                        )

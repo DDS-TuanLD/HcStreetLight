@@ -21,3 +21,7 @@ class GroupServices(metaclass=MetaGroupServices):
 
     def InsertGroup(self, values: dict):
         self.__groupRepo.Insert(values)
+
+    def FindGroupByCondition(self, condition: BinaryExpression):
+        rel = self.__groupRepo.FindByCondition(condition)
+        return rel

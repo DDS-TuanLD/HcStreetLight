@@ -1,4 +1,4 @@
-from sqlalchemy import Float, Integer
+from sqlalchemy import Boolean, Integer
 from sqlalchemy import Table, Column, String, MetaData
 
 
@@ -8,4 +8,5 @@ class EventTriggerOutputDeviceMapping:
                                                      Column('EventTriggerId', Integer, primary_key=True,
                                                             nullable=False),
                                                      Column('DeviceAddress', String, primary_key=True, nullable=False),
+                                                     Column('IsEnable', Boolean)
                                                      )

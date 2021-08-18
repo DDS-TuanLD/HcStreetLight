@@ -17,7 +17,8 @@ class EventTriggerOutputGroupSetupValueServices(metaclass=MetaEventTriggerOutput
     __eventTriggerOutputGroupSetupValueRepo: EventTriggerOutputGroupSetupValueRepo
 
     def __init__(self, EventTriggerOutputGroupSetupValueTable: Table, context: Connection):
-        self.__eventTriggerOutputGroupSetupValueRepo = EventTriggerOutputGroupSetupValueRepo(EventTriggerOutputGroupSetupValueTable, context)
+        self.__eventTriggerOutputGroupSetupValueRepo = EventTriggerOutputGroupSetupValueRepo(
+            EventTriggerOutputGroupSetupValueTable, context)
 
     def FindEventTriggerOutputGroupSetupValueByCondition(self, condition: BinaryExpression):
         rel = self.__eventTriggerOutputGroupSetupValueRepo.FindByCondition(condition)

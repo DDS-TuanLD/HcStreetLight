@@ -9,6 +9,6 @@ class EventTriggerOutputDeviceSetupValue:
                                                                nullable=False),
                                                         Column('DeviceAddress', String, primary_key=True,
                                                                nullable=False),
-                                                        Column('PropertyId', Integer),
+                                                        Column('PropertyId', Integer, primary_key=True, nullable=False),
                                                         Column('PropertyValue', Float),
                                                         )

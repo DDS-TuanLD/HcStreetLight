@@ -1,4 +1,4 @@
-from sqlalchemy import Float, Integer
+from sqlalchemy import Boolean, Integer
 from sqlalchemy import Table, Column, String, MetaData
 
 
@@ -7,4 +7,5 @@ class EventTriggerOutputGroupMapping:
         self.eventTriggerOutputGroupMapping = Table('EventTriggerOutputGroupMapping', metadata,
                                                     Column('EventTriggerId', Integer, primary_key=True, nullable=False),
                                                     Column('GroupId', String, primary_key=True, nullable=False),
+                                                    Column('IsEnable', Boolean)
                                                     )

@@ -25,9 +25,6 @@ class DeviceRepo:
         rel = self.__context.execute(ins)
         return rel
 
-    def RemoveManyById(self, data: list):
-        ins = self.__deviceTable.delete().where(self.__deviceTable.c.DeviceAddress.in_(data))
-        try:
-            self.__context.execute(ins)
-        except:
-            pass
+    def RemoveByCondition(self, condition: BinaryExpression):
+        ins = self.__deviceTable.delete().where(condition)
+        self.__context.execute(ins)

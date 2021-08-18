@@ -30,5 +30,5 @@ class DeviceServices(metaclass=MetaDeviceServices):
         rel = self.__deviceRepo.FindAll()
         return rel
 
-    def RemoveManyDeviceByDeviceAddress(self, device_address: list):
-        self.__deviceRepo.RemoveManyById(device_address)
+    def RemoveDeviceByCondition(self, condition: BinaryExpression):
+        self.__deviceRepo.RemoveByCondition(condition)

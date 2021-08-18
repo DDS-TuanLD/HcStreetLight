@@ -6,12 +6,13 @@ from ModelServices.GroupServices import GroupServices
 from ModelServices.GroupDeviceMappingServices import GroupDeviceMappingServices
 from ModelServices.GatewayServices import GatewayServices
 from ModelServices.EventTriggerServices import EventTriggerServices
-from ModelServices.EventTriggerInputDeviceMappingService import EventTriggerInputDeviceMappingServices
-from ModelServices.EventTriggerInputDeviceSetupValueService import EventTriggerInputDeviceSetupValueServices
+from ModelServices.EventTriggerInputDeviceMappingServices import EventTriggerInputDeviceMappingServices
+from ModelServices.EventTriggerInputDeviceSetupValueServices import EventTriggerInputDeviceSetupValueServices
 from ModelServices.EventTriggerOutputDeviceMappingServices import EventTriggerOutputDeviceMappingServices
 from ModelServices.EventTriggerOutputDeviceSetupValueServices import EventTriggerOutputDeviceSetupValueServices
 from ModelServices.EventTriggerOutputGroupMappingServices import EventTriggerOutputGroupMappingServices
 from ModelServices.EventTriggerOutputGroupSetupValueServices import EventTriggerOutputGroupSetupValueServices
+from ModelServices.DevicePropertyMappingServices import DevicePropertyMappingServices
 
 
 class MetaService(type):
@@ -47,6 +48,9 @@ class ServicesManager(metaclass=MetaService):
         )
         self.__eventTriggerOutputGroupSetupValueService = EventTriggerOutputGroupSetupValueServices(
             table.EventTriggerOutputGroupSetupValueTable, context
+        )
+        self.__devicePropertyMappingService = DevicePropertyMappingServices(
+            table.DevicePropertyMappingTable, context
         )
 
     @property
@@ -96,3 +100,7 @@ class ServicesManager(metaclass=MetaService):
     @property
     def EventTriggerOutputGroupSetupValueService(self):
         return self.__eventTriggerOutputGroupSetupValueService
+
+    @property
+    def DevicePropertyService(self):
+        return self.__devicePropertyMappingService

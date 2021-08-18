@@ -17,7 +17,8 @@ class EventTriggerOutputGroupMappingServices(metaclass=MetaEventTriggerOutputGro
     __eventTriggerOutputGroupMappingRepo: EventTriggerOutputGroupMappingRepo
 
     def __init__(self, EventTriggerOutputGroupMappingTable: Table, context: Connection):
-        self.__eventTriggerOutputGroupMappingRepo = EventTriggerOutputGroupMappingRepo(EventTriggerOutputGroupMappingTable, context)
+        self.__eventTriggerOutputGroupMappingRepo = EventTriggerOutputGroupMappingRepo(
+            EventTriggerOutputGroupMappingTable, context)
 
     def FindEventTriggerOutputGroupMappingByCondition(self, condition: BinaryExpression):
         rel = self.__eventTriggerOutputGroupMappingRepo.FindByCondition(condition)
