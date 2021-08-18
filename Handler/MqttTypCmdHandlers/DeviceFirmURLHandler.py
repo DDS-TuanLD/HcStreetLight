@@ -1,6 +1,9 @@
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
 import logging
+import Constants.Constant as Const
+import json
+from Database.Db import Db
 
 
 class DeviceFirmURLHandler(IMqttTypeCmdHandler):
@@ -8,4 +11,10 @@ class DeviceFirmURLHandler(IMqttTypeCmdHandler):
         super().__init__(log, mqtt)
 
     def handler(self, data):
-        pass
+        db = Db()
+
+        mqttReceiveCommandResponse = {
+            "RQI": data.get("RQI")
+        }
+
+        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
