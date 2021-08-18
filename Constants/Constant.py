@@ -23,9 +23,16 @@ RIIM_NETWORK_ID = 1
 GATEWAY_ID = 1
 
 # PropertyIdMapping
+PROPERTY_DIM_ID = 0
+PROPERTY_RELAY_ID = 1
+
 PropertyIdMapping = {
-    "0000": {
+    PROPERTY_DIM_ID: {
         "name": "dim",
         "unit": "percentage"
+    },
+    PROPERTY_RELAY_ID: {
+        "name": "relay",
+        "unit": "boolean"
     }
 }
