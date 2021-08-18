@@ -1,7 +1,10 @@
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
-from Database.Db import Db
 import logging
+import Constants.Constant as Const
+import json
+from Database.Db import Db
+import uuid
 
 
 class DelDevHandler(IMqttTypeCmdHandler):
@@ -10,10 +13,42 @@ class DelDevHandler(IMqttTypeCmdHandler):
 
     def handler(self, data):
         db = Db()
-        try:
-            devices = data["Device"]
-        except:
-            devices = []
+        rqi = data.get("RQI")
+        mqttReceiveCommandResponse = {
+            "RQI": rqi
+        }
 
-        db.Services.DeviceService.RemoveManyDeviceByDeviceAddress(devices)
+        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
+
+        devices = data.get("Device", [])
+
+        db.Services.DeviceService.RemoveDeviceByCondition(
+            db.Table.DeviceTable.c.DeviceAddress.in_(devices)
+        )
+        db.Services.GroupDeviceMappingService.RemoveGroupDeviceMappingByCondition(
+            db.Table.GroupDeviceMappingTable.c.DeviceAddress.in_(devices)
+        )
+        db.Services.DevicePropertyService.RemoveDevicePropertyMappingByCondition(
+            db.Table.DevicePropertyMappingTable.c.DeviceAddress.in_(devices)
+        )
+        db.Services.EventTriggerOutputDeviceMappingService.RemoveEventTriggerOutputDeviceMappingByCondition(
+            db.Table.EventTriggerOutputDeviceMappingTable.c.DeviceAddress.in_(devices)
+        )
+        db.Services.EventTriggerOutputDeviceSetupValueService.RemoveEventTriggerOutputDeviceSetupValueByCondition(
+            db.Table.EventTriggerOutputDeviceSetupValueTable.c.DeviceAddress.in_(devices)
+        )
+        self.__cmd_res(devices)
+
+    def __cmd_res(self, devices: list):
+        res = {
+            "RQI": str(uuid.uuid4()),
+            "TYPCMD": "DelDevRsp",
+            "Devices": []
+        }
+        for d in devices:
+            res["Devices"].append({
+                "Device": d,
+                "Success": True
+            })
+        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
 

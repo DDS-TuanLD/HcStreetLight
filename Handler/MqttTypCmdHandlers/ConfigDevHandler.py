@@ -22,8 +22,8 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
         groups: list
         devices: list
 
-        groups = data.get("Group")
-        devices = data.get("Device")
+        groups = data.get("Group", [])
+        devices = data.get("Device", [])
 
         for group in groups:
             rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
@@ -51,5 +51,8 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
         }
 
         db.Services.DeviceService.UpdateDeviceByCondition(
-            db.Table.DeviceTable.c.DeviceAddress.in_(devices), update_data
+            db.Table.DeviceTable.c.DeviceAddress.in_(unique_devices), update_data
         )
+
+    def __cmd_res(self):
+        pass

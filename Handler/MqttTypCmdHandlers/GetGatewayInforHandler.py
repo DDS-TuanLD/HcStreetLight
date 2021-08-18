@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
@@ -13,11 +14,17 @@ class GetGatewayInForHandler(IMqttTypeCmdHandler):
 
     def handler(self, data):
         db = Db()
+        rqi = data.get("RQI")
+        mqttReceiveCommandResponse = {
+            "RQI": rqi
+        }
+
+        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
         rel1 = db.Services.NetworkService.FindNetworkById(Const.RIIM_NETWORK_ID)
         riim_net_info = dict(rel1.first())
         network_info_res = {
-            "RQI": data["RQI"],
+            "RQI": str(uuid.uuid4()),
             "TYPCMD": "NetInfor",
             "NETKEY": riim_net_info.get("NetworkKey"),
             "TXPower": riim_net_info.get("TXPower"),
@@ -34,7 +41,7 @@ class GetGatewayInForHandler(IMqttTypeCmdHandler):
             gateway_info = {}
 
         hc_relay_info_res = {
-            "RQI": data["RQI"],
+            "RQI": str(uuid.uuid4()),
             "TYPCMD": "GWRelayStt",
             "Relay_1": gateway_info.get("Relay_1"),
             "Relay_2": gateway_info.get("Relay_2"),

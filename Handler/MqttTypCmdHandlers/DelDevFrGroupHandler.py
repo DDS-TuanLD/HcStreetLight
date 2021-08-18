@@ -1,3 +1,5 @@
+import uuid
+
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
 import logging
@@ -28,3 +30,28 @@ class DelDevFrGroupHandler(IMqttTypeCmdHandler):
                  db.Table.GroupDeviceMappingTable.c.DeviceAddress.in_(devices)
                  )
         )
+        r = {
+            "devices_success": devices,
+            "devices_failure": []
+        }
+        self.__cmd_res(groupId, r)
+
+    def __cmd_res(self, group: int, r: dict):
+        res = {
+            "RQI": str(uuid.uuid4()),
+            "TYPCMD": "DelDevFrGroupRsp",
+            "GroupID": group,
+            "Devices": []
+        }
+        for d in r.get("devices_success", []):
+            res["Devices"].append({
+                "Device": d,
+                "Success": True
+            })
+        for d in r.get("devices_failure", []):
+            res["Devices"].append({
+                "Device": d,
+                "Success": False
+            })
+        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
+

@@ -1,3 +1,4 @@
+import uuid
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
 from Database.Db import Db
@@ -18,20 +19,16 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
         db = Db()
-        try:
-            groupId = data["GroupID"]
-        except:
-            groupId = ""
+        groupId = data.get("GroupID")
+        devices = data.get("Device", [])
 
-        try:
-            devices = data["Device"]
-        except:
-            devices = []
+        rel = db.Services.GroupService.FindGroupByCondition(
+            db.Table.GroupTable.c.GroupId == groupId
+        )
+        group = rel.fetchone()
 
-        if groupId is None or devices is None:
-            return
-
-        db.Services.GroupService.InsertGroup({"GroupId": groupId})
+        if group is None:
+            db.Services.GroupService.InsertGroup({"GroupId": groupId})
 
         group_device_mapping_dict_list = []
         for device in devices:
@@ -42,4 +39,30 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
             group_device_mapping_dict_list.append(group_device_mapping)
         db.Services.GroupDeviceMappingService.InsertManyGroupDeviceMapping(group_device_mapping_dict_list)
 
+        r = {
+            "devices_success": devices,
+            "devices_failure": []
+        }
+        self.__cmd_res(groupId, r)
+
+    def __cmd_res(self, group: int, rel: dict):
+        res = {
+            "RQI": str(uuid.uuid4()),
+            "TYPCMD": "DelDevFrGroupRsp",
+            "GroupID": group,
+            "Devices": []
+        }
+        for d in rel.get("devices_success", []):
+            device = {
+                "Device": d,
+                "Success": True
+            }
+            res["Devices"].append(device)
+        for d in rel.get("devices_failure", []):
+            device = {
+                "Device": d,
+                "Success": False
+            }
+            res["Devices"].append(device)
+        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
 

@@ -1,6 +1,10 @@
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
 import logging
+import Constants.Constant as Const
+import json
+from Database.Db import Db
+import uuid
 
 
 class PingGatewayHandler(IMqttTypeCmdHandler):
@@ -8,4 +12,10 @@ class PingGatewayHandler(IMqttTypeCmdHandler):
         super().__init__(log, mqtt)
 
     def handler(self, data):
-        pass
+        res = {
+            "RQI": data.get("RQI"),
+            "TYPCMD": "ResponeGateway",
+            "Success:": True
+        }
+        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
+
