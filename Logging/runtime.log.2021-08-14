@@ -1,0 +1,2 @@
+2021-08-14 21:00:24,287:	DEBUG:	MqttDataHandler.py:handler():21	data from mqtt: {'topic': 'cloud/device/request', 'msg': '{\n"RQI":"gkjdfg",\n"TYPCMD":"ConfigGWRF",\n"TXPower":"hgkjsd",\n"Netkey":"shgkjfds"\n}'}
+2021-08-14 21:00:24,388:	DEBUG:	MqttDataHandler.py:handler():21	data from mqtt: {'topic': 'cloud/device/response', 'msg': '{"RQI": "gkjdfg"}'}
