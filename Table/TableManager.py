@@ -6,7 +6,7 @@ from Table.EventTriggerInputDeviceSetupValue import EventTriggerInputDeviceSetup
 from Table.Network import Network
 from Table.Property import Property
 from Table.Schedule import Schedule
-from Table.DevicePropertiesMapping import DevicePropertiesMapping
+from Table.DevicePropertyMapping import DevicePropertyMapping
 from Table.EventTrigger import EventTrigger
 from Table.Gateway import Gateway
 from Table.EventTriggerOutputDeviceMapping import EventTriggerOutputDeviceMapping
@@ -14,6 +14,8 @@ from Table.EventTriggerOutputDeviceSetupValue import EventTriggerOutputDeviceSet
 from Table.EventTriggerOutputGroupMapping import EventTriggerOutputGroupMapping
 from Table.EventTriggerOutputGroupSetupValue import EventTriggerOutputGroupSetupValue
 from Table.GroupDeviceMapping import GroupDeviceMapping
+from Table.DeviceFirmwareUpdate import DeviceFirmwareUpdate
+from Table.GatewayFirmwareUpdate import GatewayFirmwareUpdate
 
 
 class TableManager:
@@ -25,7 +27,7 @@ class TableManager:
         self.__networkTable = Network(metadata)
         self.__propertyTable = Property(metadata)
         self.__scheduleTable = Schedule(metadata)
-        self.__devicePropertiesMappingTable = DevicePropertiesMapping(metadata)
+        self.__devicePropertyMappingTable = DevicePropertyMapping(metadata)
         self.__eventTriggerTable = EventTrigger(metadata)
         self.__gatewayTable = Gateway(metadata)
         self.__eventTriggerOutputDeviceMappingTable = EventTriggerOutputDeviceMapping(metadata)
@@ -33,6 +35,8 @@ class TableManager:
         self.__eventTriggerOutputGroupMappingTable = EventTriggerOutputGroupMapping(metadata)
         self.__eventTriggerOutputGroupSetupValueTable = EventTriggerOutputGroupSetupValue(metadata)
         self.__groupDeviceMappingTable = GroupDeviceMapping(metadata)
+        self.__deviceFirmwareUpdateTable = DeviceFirmwareUpdate(metadata)
+        self.__gatewayFirmwareUpdateTable = GatewayFirmwareUpdate(metadata)
 
     @property
     def GroupTable(self):
@@ -67,8 +71,8 @@ class TableManager:
         return self.__scheduleTable.schedule
 
     @property
-    def DevicePropertiesMappingTable(self):
-        return self.__devicePropertiesMappingTable.devicePropertiesMapping
+    def DevicePropertyMappingTable(self):
+        return self.__devicePropertyMappingTable.devicePropertyMapping
 
     @property
     def EventTriggerTable(self):
@@ -93,3 +97,12 @@ class TableManager:
     @property
     def EventTriggerOutputGroupSetupValueTable(self):
         return self.__eventTriggerOutputGroupSetupValueTable.eventTriggerOutputGroupSetupValue
+
+    @property
+    def DeviceFirmwareUpdateTable(self):
+        return self.__deviceFirmwareUpdateTable.deviceFirmwareUpdate
+
+    @property
+    def GatewayFirmwareUpdateTable(self):
+        return self.__gatewayFirmwareUpdateTable.gatewayFirmwareUpdate
+
