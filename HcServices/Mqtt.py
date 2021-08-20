@@ -72,3 +72,6 @@ class Mqtt(ITransport):
 
     def receive(self):
         pass
+
+    def is_readable(self):
+        pass
