@@ -23,10 +23,25 @@ class System:
         if gateway is None:
             self.__db.Services.GatewayService.InsertGateway({
                 "GatewayId": Const.GATEWAY_ID,
+                "Temp": 0,
+                "Lux": 0,
+                "U": 0,
+                "I": 0,
+                "Cos": 0,
+                "P": 0,
+                "Minute": 0,
+                "KWH": 0,
+                "ActiveTime": 0,
+                "Relay_1": True,
+                "Relay_2": True,
+                "Relay_3": True,
+                "Relay_4": True,
+
             })
         if network is None:
             self.__db.Services.NetworkService.InsertNetwork({
                 "NetworkId": Const.RIIM_NETWORK_ID,
+                "GatewayMac": "1213454363",
                 "FirmwareVersion": Const.FIRMWARE_FIRST_VERSION
             })
 
@@ -38,7 +53,7 @@ class System:
         devicesPropertyMapping = rel2.fetchall()
 
         rel3 = self.__db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
-        gateway = rel3.fetchone()
+        gateway = dict(rel3.fetchone())
 
         devices_address = []
 
@@ -46,14 +61,14 @@ class System:
             "RQI": str(uuid.uuid4()),
             "TYPCMD": "DeviceStatus",
             "Gateway": {
-                "Temp": gateway["Temp"],
-                "Lux": gateway["Lux"],
-                "U": gateway["U"],
-                "I": gateway["I"],
-                "Cos": gateway["Cos"],
-                "P": gateway["P"],
-                "Minute": gateway["Minute"],
-                "KWh": gateway["KWH"]
+                "Temp": gateway.get("Temp"),
+                "Lux": gateway.get("Lux"),
+                "U": gateway.get("U"),
+                "I": gateway.get("I"),
+                "Cos": gateway.get("Cos"),
+                "P": gateway.get("P"),
+                "Minute": gateway.get("Minute"),
+                "KWh": gateway.get("KWH")
             },
             "Devices": []
         }
@@ -62,21 +77,23 @@ class System:
 
         if len(devices) != 0:
             for device in devices:
+                print(device)
+                print(device["Relay"])
                 devices_address.append(device["DeviceAddress"])
                 temp[device["DeviceAddress"]] = {
                     "Device": device["DeviceAddress"],
                     "Online": device["IsOnline"],
                     "Status": device["IsBroken"],
-                    "Scene": [],
+                    "Scene": 0,
                     "Relay": device["Relay"],
-                    "DIM": None,
-                    "Temp": None,
-                    "Lux": None,
-                    "U": None,
-                    "I": None,
-                    "Cos": None,
-                    "P": None,
-                    "KWh": device["KWH"]
+                    "DIM": 0,
+                    "Temp": 0,
+                    "Lux": 0,
+                    "U": 0,
+                    "I": 0,
+                    "Cos": 0,
+                    "P": 0,
+                    "KWh": device['KWH']
                 }
 
         if len(devicesPropertyMapping) != 0:
@@ -84,9 +101,6 @@ class System:
                 r = devicePropertyMapping
                 if r["PropertyId"] == Const.PROPERTY_DIM_ID:
                     temp[r["DeviceAddress"]]["DIM"] = r["PropertyValue"]
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_RELAY_ID:
-                    temp[r["DeviceAddress"]]["Relay"] = r["PropertyValue"]
                     continue
                 if r["PropertyId"] == Const.PROPERTY_P_ID:
                     temp[r["DeviceAddress"]]["P"] = r["PropertyValue"]
@@ -117,7 +131,7 @@ class System:
 
         if len(scenes) != 0:
             for scene in scenes:
-                temp[scene["DeviceAddress"]]["Scene"].append(scene["EventTriggerId"])
+                temp[scene["DeviceAddress"]]["Scene"] = scene["EventTriggerId"]
         for t in temp:
             res["Devices"].append(temp[t])
         return res
@@ -167,3 +181,9 @@ class System:
     def update_device_online_status_to_db(self, device_address: str, is_online: bool):
         self.__db.Services.DeviceService.UpdateDeviceByCondition(
             self.__db.Table.DeviceTable.c.DeviceAddress == device_address, {"IsOnline": is_online})
+
+    def check_uart_crc_mess(self, buf: list):
+        return True
+
+    def create_uart_crc_byte(self):
+        return 0x00

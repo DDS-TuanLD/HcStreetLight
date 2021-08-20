@@ -54,39 +54,40 @@ class RdHc(IController):
 
     async def __hc_handler_uart_data(self):
         count = 0
+        trace_mes_len = 0
         while True:
-            await asyncio.sleep(0.5)
-            if len(self.__uart.receive_data_buf) != 0:
+            await asyncio.sleep(0.1)
+            if len(self.__uart.receive_data_buf) > 3:
                 try:
                     p = self.__uart.receive_data_buf.index(Const.UART_MESS_HEADER_RIIM_TO_AI_1, count)
                     if self.__uart.receive_data_buf[p + 1] == Const.UART_MESS_HEADER_RIIM_TO_AI_2:
                         if p == 0:
-                            try:
-                                while True:
-                                    p1 = self.__uart.receive_data_buf.index(Const.UART_MESS_HEADER_RIIM_TO_AI_1,
-                                                                            count + 1)
-                                    if self.__uart.receive_data_buf[p1 + 1] == Const.UART_MESS_HEADER_RIIM_TO_AI_2:
-                                        break
-                                    count = p1 + 1
-                            except:
-                                p1 = 0
-                            if p1 == 0:
-                                buf = self.__uart.receive_data_buf
-                                #
-                                # handler data
-                                #
-                                continue
+                            trace_mes_len = self.__uart.receive_data_buf[p + 2]
+                        if len(self.__uart.receive_data_buf) < trace_mes_len + 3:
+                            break
+                        buf = self.__uart.receive_data_buf[0: trace_mes_len + 3]
+                        ok = self.__systemHelper.check_uart_crc_mess(buf)
+                        if ok:
+                            print(f"valid data: {buf}")
+                            for i in range(0, trace_mes_len + 3):
+                                self.__uart.receive_data_buf.pop(0)
+                            trace_mes_len = 0
+                            print(f"buffer data left: {self.__uart.receive_data_buf}")
+                        if not ok:
                             count += 1
                         if p != 0:
-                            buf = []
-                            for i in range(0, p):
-                                buf.append(self.__uart.receive_data_buf.pop(0))
-                            #
-                            # handler data
-                            #
+                            if trace_mes_len == 0:
+                                for i in range(0, p):
+                                    self.__uart.receive_data_buf.pop(0)
+                                print(p)
+                            if trace_mes_len != 0:
+                                if (p >= trace_mes_len + 3) or (trace_mes_len + 3 > p >= trace_mes_len + 1):
+                                    for i in range(0, p):
+                                        self.__uart.receive_data_buf.pop(0)
+                                    trace_mes_len = count = 0
                         continue
                     if self.__uart.receive_data_buf[p + 1] != Const.UART_MESS_HEADER_RIIM_TO_AI_2:
-                        count = p + 1
+                        count += p
                 except:
                     if count > 0:
                         count = 0
