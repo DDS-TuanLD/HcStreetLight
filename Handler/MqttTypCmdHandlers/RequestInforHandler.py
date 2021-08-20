@@ -21,7 +21,9 @@ class RequestInforHandler(IMqttTypeCmdHandler):
 
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
-        rel = db.Services.DeviceService.FindAllDevice()
+        rel = db.Services.DeviceService.FindDeviceByCondition(
+            db.Table.DeviceTable.c.DeviceAddress.in_(data.get("Device"))
+        )
         devices = rel.fetchall()
         devices_info = []
         if devices is not None:
@@ -29,10 +31,10 @@ class RequestInforHandler(IMqttTypeCmdHandler):
                 device_info = {
                     "Device": device["DeviceAddress"],
                     "GPS": {
-                        "Lat": device["Latitude"],
-                        "Long": device["Longitude"]
+                        "Lat": str(device["Latitude"]),
+                        "Long": str(device["Longitude"])
                     },
-                    "TXPower": device["TxPower"],
+                    "TXPower": device["TXPower"],
                     "FirmVer": device["FirmwareVersion"]
                 }
                 devices_info.append(device_info)
@@ -41,9 +43,8 @@ class RequestInforHandler(IMqttTypeCmdHandler):
     def __cmd_res(self, devices_info: list):
         mes_res = {
             "RQI": str(uuid.uuid4()),
-            "TYPCMD": "RequestInforRsp",
+            "TYPCMD": "DeviceInfo",
             "Devices": devices_info
         }
-
-        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mes_res))
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(mes_res))
 

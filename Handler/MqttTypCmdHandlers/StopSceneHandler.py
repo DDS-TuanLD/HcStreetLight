@@ -57,5 +57,5 @@ class StopSceneHandler(IMqttTypeCmdHandler):
                 "Group": g,
                 "Success": True
             })
-        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

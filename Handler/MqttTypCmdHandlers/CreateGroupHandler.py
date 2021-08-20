@@ -48,7 +48,7 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
     def __cmd_res(self, group: int, rel: dict):
         res = {
             "RQI": str(uuid.uuid4()),
-            "TYPCMD": "DelDevFrGroupRsp",
+            "TYPCMD": "CreateGroupRsp",
             "GroupID": group,
             "Devices": []
         }
@@ -64,5 +64,5 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
                 "Success": False
             }
             res["Devices"].append(device)
-        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

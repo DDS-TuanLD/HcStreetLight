@@ -31,7 +31,7 @@ class GetGatewayInForHandler(IMqttTypeCmdHandler):
             "MAC": riim_net_info.get("GatewayMac"),
             "FirmVer": riim_net_info.get("FirmwareVersion")
         }
-        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(network_info_res))
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(network_info_res))
 
         rel2 = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
 
@@ -49,5 +49,5 @@ class GetGatewayInForHandler(IMqttTypeCmdHandler):
             "Relay_4": gateway_info.get("Relay_4")
         }
 
-        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(hc_relay_info_res))
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(hc_relay_info_res))
 

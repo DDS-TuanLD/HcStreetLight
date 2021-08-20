@@ -47,5 +47,5 @@ class ControlRelayHandler(IMqttTypeCmdHandler):
             "Relay_3": gateway.get("Relay_3"),
             "Relay_4": gateway.get("Relay_4")
         }
-        self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 
