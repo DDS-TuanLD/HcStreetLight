@@ -20,36 +20,28 @@ class ConfigGWRFHandler(IMqttTypeCmdHandler):
         }
 
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
-
         rel = db.Services.NetworkService.FindNetworkById(Const.RIIM_NETWORK_ID)
 
-        network = dict(rel.fetchone())
+        network = rel.fetchone()
 
         if network is None:
-            db.Services.NetworkServices.InsertNetwork({"NetworkId": Const.RIIM_NETWORK_ID})
+            db.Services.NetworkService.InsertNetwork({
+                "NetworkId": Const.RIIM_NETWORK_ID,
+                "NetworkKey": data.get("Netkey"),
+                "TXPower": data.get("TXPower")
+            })
+        if network is not None:
+            if network["NetworkKey"] != data.get("Netkey"):
+                ok = self.__change_network_key()
+                if ok:
+                    db.Services.NetworkService.UpdateNetworkByCondition(
+                        db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"NetworkKey": data.get("Netkey")})
 
-            # ok = self.__change_network_key()
-            # if ok:
-            #     db.Services.NetworkService.UpdateNetworkByCondition(
-            #         db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"NetworkKey": data["Netkey"]})
-            #
-            # ok = self.__change_network_tx_power()
-            # if ok:
-            #     db.Services.NetworkService.UpdateNetworkByCondition(
-            #         db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"TXPower": data["TXPower"]})
-            # return
-
-        if network.get("NetworkKey") != data.get("NetKey"):
-            ok = self.__change_network_key()
-            if ok:
-                db.Services.NetworkService.UpdateNetworkByCondition(
-                    db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"NetworkKey": data["Netkey"]})
-
-        if network.get("TXPower") != data.get("TXPower"):
-            ok = self.__change_network_tx_power()
-            if ok:
-                db.Services.NetworkService.UpdateNetworkByCondition(
-                    db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"TXPower": data["TXPower"]})
+            if network["TXPower"] != data.get("TXPower"):
+                ok = self.__change_network_tx_power()
+                if ok:
+                    db.Services.NetworkService.UpdateNetworkByCondition(
+                        db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"TXPower": data.get("TXPower")})
         self.__cmd_res()
 
     def __change_network_key(self):

@@ -16,7 +16,7 @@ class GatewayCommanderHandler(IMqttTypeCmdHandler):
         mes_res = {
                 "RQI": data["RQI"],
                 "TYPCMD": "GatewayCmdRsp",
-                "Response": rel
+                "Response": rel[1]
             }
 
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mes_res))

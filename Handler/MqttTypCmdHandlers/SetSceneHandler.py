@@ -49,7 +49,9 @@ class SetSceneHandler(IMqttTypeCmdHandler):
 
     def __save_input_condition_to_db(self, data):
         db = Db()
-        devices_input_condition = list(data.get("input_condition").get("device_condition"))
+        devices_input_condition = data.get("input_condition").get("device_condition", [])
+        if not devices_input_condition:
+            return
 
         devices_mapping_input_insert = []
         devices_setup_input_insert = []
@@ -137,18 +139,22 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             groups_output_mapping.append(group_output_mapping)
             groups_success_list.append(group_output_action.get("GroupId"))
 
-        db.Services.EventTriggerOutputDeviceMappingService.InsertManyEventTriggerOutputDeviceMapping(
-            devices_output_mapping
-        )
-        db.Services.EventTriggerOutputDeviceSetupValueService.InsertManyEventTriggerOutputDeviceSetupValue(
-            devices_output_setup_value
-        )
-        db.Services.EventTriggerOutputGroupMappingService.InsertManyEventTriggerOutputGroupMapping(
-            groups_output_mapping
-        )
-        db.Services.EventTriggerOutputGroupSetupValueService.InsertEventTriggerOutputGroupSetupValue(
-            groups_output_setup_value
-        )
+        if devices_output_mapping:
+            db.Services.EventTriggerOutputDeviceMappingService.InsertManyEventTriggerOutputDeviceMapping(
+                devices_output_mapping
+            )
+        if devices_output_setup_value:
+            db.Services.EventTriggerOutputDeviceSetupValueService.InsertManyEventTriggerOutputDeviceSetupValue(
+                devices_output_setup_value
+            )
+        if groups_output_mapping:
+            db.Services.EventTriggerOutputGroupMappingService.InsertManyEventTriggerOutputGroupMapping(
+                groups_output_mapping
+            )
+        if groups_output_setup_value:
+            db.Services.EventTriggerOutputGroupSetupValueService.InsertEventTriggerOutputGroupSetupValue(
+                groups_output_setup_value
+            )
         return {
             "device_success": devices_success_list,
             "device_failure": [],
