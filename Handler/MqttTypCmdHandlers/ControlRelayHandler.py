@@ -21,6 +21,7 @@ class ControlRelayHandler(IMqttTypeCmdHandler):
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
         rel = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
         gateway = rel.fetchone()
+        print(str(gateway))
         if gateway is not None:
             db.Services.GatewayService.UpdateGatewayById(Const.GATEWAY_ID, data.get("Control"))
         if gateway is None:
@@ -38,7 +39,6 @@ class ControlRelayHandler(IMqttTypeCmdHandler):
         db = Db()
         rel = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
         gateway = dict(rel.fetchone())
-        print(gateway)
         res = {
             "RQI": str(uuid.uuid4()),
             "TYPCMD": "GWRelayStt",
