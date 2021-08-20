@@ -5,7 +5,9 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from HcServices.Mqtt import Mqtt
 from Handler.MqttDataHandler import MqttDataHandler
+from Handler.UartDataHandler import UartDataHandler
 import os
+from HcServices.Uart import Uart
 
 file_dir = os.path.dirname(__file__)
 
@@ -25,11 +27,14 @@ logger.addHandler(logging_handler)
 logger.setLevel(logging.DEBUG)
 
 mqtt = Mqtt(logger)
-
 mqttHandler = MqttDataHandler(logger, mqtt)
 
+uart = Uart(logger)
+uartHandler = UartDataHandler(logger, uart)
+
+
 db = Db()
-hc = RdHc(logger, mqtt, mqttHandler)
+hc = RdHc(logger, mqtt, mqttHandler, uart, uartHandler)
 
 
 async def main():

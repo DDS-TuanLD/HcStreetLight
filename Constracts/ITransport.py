@@ -4,9 +4,11 @@ import queue
 
 class ITransport(metaclass=ABCMeta):
     receive_data_queue: queue.Queue
+    receive_data_buf: list
 
     def __init__(self):
         self.receive_data_queue = queue.Queue()
+        self.receive_data_buf = []
 
     @abstractmethod
     def connect(self):
@@ -26,4 +28,8 @@ class ITransport(metaclass=ABCMeta):
 
     @abstractmethod
     def receive(self):
+        return
+
+    @abstractmethod
+    def is_readable(self):
         return

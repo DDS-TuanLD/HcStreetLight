@@ -18,21 +18,78 @@ class RdHc(IController):
     __mqttHandler: IHandler
     __systemHelper: System
     __globalVariables: GlobalVariables
+    __uart: ITransport
+    __buf: list
 
     def __init__(self, log: logging.Logger, mqtt: ITransport,
-                 mqtt_handler: IHandler):
+                 mqtt_handler: IHandler, uart: ITransport, uart_handler: IHandler):
         self.__logger = log
         self.__mqttServices = mqtt
         self.__lock = threading.Lock()
         self.__mqttHandler = mqtt_handler
         self.__systemHelper = System(self.__logger)
         self.__globalVariables = GlobalVariables()
+        self.__uart = uart
+        self.__uartHandler = uart_handler
 
     def __hc_report_network_info(self):
-        pass
+        print("hc report network info")
+        res = self.__systemHelper.report_network_info()
+        self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 
     def __hc_load_devices_heartbeat_to_global_dict(self):
         self.__systemHelper.load_devices_heartbeat_to_global_dict()
+
+    def __hc_add_basic_info_to_db(self):
+        self.__systemHelper.add_basic_info_to_db()
+
+    async def __hc_receive_uart_data(self):
+        while True:
+            await asyncio.sleep(0.1)
+            while self.__uart.is_readable():
+                c = self.__uart.receive()
+                if c == bytes():
+                    break
+                self.__uart.receive_data_buf.append(int.from_bytes(c, 'big'))
+
+    async def __hc_handler_uart_data(self):
+        count = 0
+        while True:
+            await asyncio.sleep(0.5)
+            if len(self.__uart.receive_data_buf) != 0:
+                try:
+                    p = self.__uart.receive_data_buf.index(Const.UART_MESS_HEADER_RIIM_TO_AI_1, count)
+                    if self.__uart.receive_data_buf[p + 1] == Const.UART_MESS_HEADER_RIIM_TO_AI_2:
+                        if p == 0:
+                            try:
+                                while True:
+                                    p1 = self.__uart.receive_data_buf.index(Const.UART_MESS_HEADER_RIIM_TO_AI_1,
+                                                                            count + 1)
+                                    if self.__uart.receive_data_buf[p1 + 1] == Const.UART_MESS_HEADER_RIIM_TO_AI_2:
+                                        break
+                                    count = p1 + 1
+                            except:
+                                p1 = 0
+                            if p1 == 0:
+                                buf = self.__uart.receive_data_buf
+                                #
+                                # handler data
+                                #
+                                continue
+                            count += 1
+                        if p != 0:
+                            buf = []
+                            for i in range(0, p):
+                                buf.append(self.__uart.receive_data_buf.pop(0))
+                            #
+                            # handler data
+                            #
+                        continue
+                    if self.__uart.receive_data_buf[p + 1] != Const.UART_MESS_HEADER_RIIM_TO_AI_2:
+                        count = p + 1
+                except:
+                    if count > 0:
+                        count = 0
 
     async def __hc_check_heartbeat_and_update_devices_online_status_to_db(self):
         while True:
@@ -51,17 +108,21 @@ class RdHc(IController):
             self.__systemHelper.update_devices_online_status_to_global_dict()
 
     async def __hc_report_devices_state(self):
-        await asyncio.sleep(Const.HC_REPORT_DEVICE_STATE_INTERVAL)
-        device_state_mes = {}
-        self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(device_state_mes))
+        while True:
+            print("hc report device state")
+            device_state_mes = self.__systemHelper.report_devices_state()
+            self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(device_state_mes))
+            await asyncio.sleep(Const.HC_REPORT_DEVICE_STATE_INTERVAL)
 
     async def __hc_check_connect_with_cloud(self):
-        await asyncio.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
-        ping_mes = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "Ping"
-        }
-        self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(ping_mes))
+        while True:
+            print("hc ping to cloud")
+            ping_mes = {
+                "RQI": str(uuid.uuid4()),
+                "TYPCMD": "Ping"
+            }
+            self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(ping_mes))
+            await asyncio.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
 
     async def __hc_handler_mqtt_data(self):
         while True:
@@ -74,6 +135,8 @@ class RdHc(IController):
 
     async def run(self):
         self.__mqttServices.connect()
+        # self.__uart.connect()
+        self.__hc_add_basic_info_to_db()
         self.__hc_report_network_info()
         self.__systemHelper.update_devices_online_status_to_global_dict()
         self.__hc_load_devices_heartbeat_to_global_dict()
@@ -82,5 +145,7 @@ class RdHc(IController):
         task2 = asyncio.create_task(self.__hc_report_devices_state())
         task3 = asyncio.create_task(self.__hc_update_devices_online_status_from_db_to_global_dict())
         task4 = asyncio.create_task(self.__hc_check_heartbeat_and_update_devices_online_status_to_db())
+        # task5 = asyncio.create_task(self.__hc_receive_uart_data())
+        # task6 = asyncio.create_task(self.__hc_handler_uart_data())
         tasks = [task0, task1, task2, task3, task4]
         await asyncio.gather(*tasks)
