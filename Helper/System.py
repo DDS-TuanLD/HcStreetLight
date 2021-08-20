@@ -76,7 +76,7 @@ class System:
 
         if len(devicesPropertyMapping) != 0:
             for devicePropertyMapping in devicesPropertyMapping:
-                r = dict(devicePropertyMapping)
+                r = devicePropertyMapping
                 if r["PropertyId"] == Const.PROPERTY_DIM_ID:
                     temp[r["DeviceAddress"]]["DIM"] = r["PropertyValue"]
                     continue
@@ -104,14 +104,14 @@ class System:
                 if r["PropertyId"] == Const.PROPERTY_KWH_ID:
                     temp[r["DeviceAddress"]]["KWh"] = r["PropertyValue"]
                     continue
-            for t in temp:
-                res["Devices"].append(temp[t])
+
+        for t in temp:
+            res["Devices"].append(temp[t])
         return res
 
     def report_network_info(self) -> dict:
         rel = self.__db.Services.NetworkService.FindNetworkById(Const.RIIM_NETWORK_ID)
         network = rel.fetchone()
-        print(network is None)
         res = {}
         if network is None:
             res = {
