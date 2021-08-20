@@ -32,3 +32,7 @@ class DeviceServices(metaclass=MetaDeviceServices):
 
     def RemoveDeviceByCondition(self, condition: BinaryExpression):
         self.__deviceRepo.RemoveByCondition(condition)
+
+    def FindAllDeviceAddress(self):
+        rel = self.__deviceRepo.FindAllDeviceAddress()
+        return rel

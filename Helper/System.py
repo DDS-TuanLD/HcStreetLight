@@ -37,8 +37,10 @@ class System:
         rel2 = self.__db.Services.DevicePropertyService.FindAllDevicePropertyMapping()
         devicesPropertyMapping = rel2.fetchall()
 
-        rel2 = self.__db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
-        gateway = rel2.fetchone()
+        rel3 = self.__db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
+        gateway = rel3.fetchone()
+
+        devices_address = []
 
         res = {
             "RQI": str(uuid.uuid4()),
@@ -57,22 +59,25 @@ class System:
         }
 
         temp = {}
-        for device in devices:
-            temp[device["DeviceAddress"]] = {
-                "Device": device["DeviceAddress"],
-                "Online": device["IsOnline"],
-                "Status": device["IsBroken"],
-                "Scene": [],
-                "Relay": device["Relay"],
-                "DIM": None,
-                "Temp": None,
-                "Lux": None,
-                "U": None,
-                "I": None,
-                "Cos": None,
-                "P": None,
-                "KWh": device["KWH"]
-            }
+
+        if len(devices) != 0:
+            for device in devices:
+                devices_address.append(device["DeviceAddress"])
+                temp[device["DeviceAddress"]] = {
+                    "Device": device["DeviceAddress"],
+                    "Online": device["IsOnline"],
+                    "Status": device["IsBroken"],
+                    "Scene": [],
+                    "Relay": device["Relay"],
+                    "DIM": None,
+                    "Temp": None,
+                    "Lux": None,
+                    "U": None,
+                    "I": None,
+                    "Cos": None,
+                    "P": None,
+                    "KWh": device["KWH"]
+                }
 
         if len(devicesPropertyMapping) != 0:
             for devicePropertyMapping in devicesPropertyMapping:
@@ -105,6 +110,14 @@ class System:
                     temp[r["DeviceAddress"]]["KWh"] = r["PropertyValue"]
                     continue
 
+        rel4 = self.__db.Services.EventTriggerOutputDeviceMappingService.FindEventTriggerOutputDeviceMappingByCondition(
+            self.__db.Table.EventTriggerOutputDeviceMappingTable.c.DeviceAddress.in_(devices_address)
+        )
+        scenes = rel4.fetchall()
+
+        if len(scenes) != 0:
+            for scene in scenes:
+                temp[scene["DeviceAddress"]]["Scene"].append(scene["EventTriggerId"])
         for t in temp:
             res["Devices"].append(temp[t])
         return res

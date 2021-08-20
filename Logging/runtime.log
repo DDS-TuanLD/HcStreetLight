@@ -1,3 +1,4 @@
 2021-08-20 12:06:13,170:	ERROR:	MqttDataHandler.py:__handler_cloud_to_device_request_topic():75	mqtt data receiver in topic cloud/device/request invalid
 2021-08-20 12:07:52,142:	ERROR:	MqttDataHandler.py:__handler_cloud_to_device_request_topic():75	mqtt data receiver in topic cloud/device/request invalid
 2021-08-20 12:10:14,676:	ERROR:	MqttDataHandler.py:__handler_cloud_to_device_request_topic():75	mqtt data receiver in topic cloud/device/request invalid
+2021-08-20 14:17:07,892:	ERROR:	MqttDataHandler.py:__handler_cloud_to_device_request_topic():75	mqtt data receiver in topic cloud/device/request invalid

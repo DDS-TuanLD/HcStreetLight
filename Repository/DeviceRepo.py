@@ -28,3 +28,8 @@ class DeviceRepo:
     def RemoveByCondition(self, condition: BinaryExpression):
         ins = self.__deviceTable.delete().where(condition)
         self.__context.execute(ins)
+
+    def FindAllDeviceAddress(self):
+        ins = self.__deviceTable.select(self.__deviceTable.c.DeviceAddress)
+        rel = self.__context.execute(ins)
+        return rel
