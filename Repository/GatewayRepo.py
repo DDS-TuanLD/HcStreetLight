@@ -16,7 +16,7 @@ class GatewayRepo:
         rel = self.__context.execute(ins)
         return rel
 
-    def UpdateById(self, Id:int, values: dict):
+    def UpdateById(self, Id: int, values: dict):
         ins = self.__gatewayTable.update().where(self.__gatewayTable.c.GatewayId == Id).values(values)
         self.__context.execute(ins)
 

@@ -28,3 +28,7 @@ class DevicePropertyMappingServices(metaclass=MetaDevicePropertyMappingServices)
 
     def RemoveDevicePropertyMappingByCondition(self, condition: BinaryExpression):
         self.__devicePropertyMappingRepo.RemoveByCondition(condition)
+
+    def FindAllDevicePropertyMapping(self):
+        rel = self.__devicePropertyMappingRepo.FindAll()
+        return rel

@@ -41,7 +41,3 @@ class DevicePropertyMappingRepo:
         })
         self.__context.execute(ins, data)
 
-    def FindByCondition(self, condition: BinaryExpression):
-        ins = self.__devicePropertyMappingTable.select().where(condition)
-        rel = self.__context.execute(ins)
-        return rel
