@@ -1,6 +1,3 @@
-import datetime
-
-
 class MetaGlobalVariables(type):
     _instances = {}
 
@@ -14,6 +11,7 @@ class GlobalVariables(metaclass=MetaGlobalVariables):
     def __init__(self):
         self.__devices_online_status_dict = {}
         self.__devices_heartbeat_dict = {}
+        self.__mqtt_need_response_dict = {}
 
     @property
     def devices_online_status_dict(self):
@@ -22,3 +20,7 @@ class GlobalVariables(metaclass=MetaGlobalVariables):
     @property
     def devices_heartbeat_dict(self):
         return self.__devices_heartbeat_dict
+
+    @property
+    def mqtt_need_response_dict(self):
+        return self.__mqtt_need_response_dict

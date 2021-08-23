@@ -22,8 +22,8 @@ class DelDevFrGroupHandler(IMqttTypeCmdHandler):
 
         db = Db()
 
-        devices = data["Device"]
-        groupId = data["GroupID"]
+        devices = data.get("Device", [])
+        groupId = data.get("GroupID", [])
 
         db.Services.GroupDeviceMappingService.RemoveGroupDeviceMappingByCondition(
             and_(db.Table.GroupDeviceMappingTable.c.GroupId == groupId,
@@ -39,7 +39,7 @@ class DelDevFrGroupHandler(IMqttTypeCmdHandler):
     def __cmd_res(self, group: int, r: dict):
         res = {
             "RQI": str(uuid.uuid4()),
-            "TYPCMD": "CreateGroupRsp",
+            "TYPCMD": "DelDevFrGroupRsp",
             "GroupID": group,
             "Devices": []
         }
@@ -53,5 +53,6 @@ class DelDevFrGroupHandler(IMqttTypeCmdHandler):
                 "Device": d,
                 "Success": False
             })
+        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

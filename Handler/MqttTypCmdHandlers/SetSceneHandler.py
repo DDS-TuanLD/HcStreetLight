@@ -121,13 +121,13 @@ class SetSceneHandler(IMqttTypeCmdHandler):
                 "EventTriggerId": data.get("ID"),
                 "GroupId": group_output_action.get("GroupId"),
                 "PropertyId": Const.PROPERTY_RELAY_ID,
-                "PropertyValue": float(action.get("Relay"))
+                "PropertyValue": action.get("Relay")
             }
             group_output_dim_setup_value = {
                 "EventTriggerId": data.get("ID"),
                 "GroupId": group_output_action.get("GroupId"),
                 "PropertyId": Const.PROPERTY_DIM_ID,
-                "PropertyValue": float(action.get("DIM"))
+                "PropertyValue": action.get("DIM")
             }
             group_output_mapping = {
                 "EventTriggerId": data.get("ID"),
@@ -208,5 +208,7 @@ class SetSceneHandler(IMqttTypeCmdHandler):
                 "GroupId": g,
                 "Success": False
             })
+
+        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

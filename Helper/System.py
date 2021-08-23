@@ -3,6 +3,8 @@ import logging
 from GlobalVariables.GlobalVariables import GlobalVariables
 import uuid
 import Constants.Constant as Const
+import datetime
+import time
 
 
 class System:
@@ -12,6 +14,31 @@ class System:
 
     def __init__(self, logger: logging.Logger):
         self.__logger = logger
+
+    def report_device_report(self) -> dict:
+        timestamp_now = time.time()
+        t = datetime.datetime.fromtimestamp(timestamp_now).strftime("%Y%m%d")
+
+        res = {
+            "RQI": str(uuid.uuid4()),
+            "TYPCMD": "DeviceReport",
+            "Day": t,
+            "KWh": int(),
+            "Minute": int(),
+            "Devices": []
+        }
+
+        rel = self.__db.Services.DeviceService.FindAllDevice()
+        devices = rel.fetchall()
+        for d in devices:
+            res["Devices"].append({
+                "Device": d["DeviceAddress"],
+                "KWh": 0,
+                "Minute": 0
+            })
+
+        self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
+        return res
 
     def add_basic_info_to_db(self):
         rel = self.__db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
@@ -77,15 +104,13 @@ class System:
 
         if len(devices) != 0:
             for device in devices:
-                print(device)
-                print(device["Relay"])
                 devices_address.append(device["DeviceAddress"])
                 temp[device["DeviceAddress"]] = {
                     "Device": device["DeviceAddress"],
                     "Online": device["IsOnline"],
-                    "Status": device["IsBroken"],
+                    "Status": 0,
                     "Scene": 0,
-                    "Relay": device["Relay"],
+                    "Relay": bool(),
                     "DIM": 0,
                     "Temp": 0,
                     "Lux": 0,
@@ -99,8 +124,14 @@ class System:
         if len(devicesPropertyMapping) != 0:
             for devicePropertyMapping in devicesPropertyMapping:
                 r = devicePropertyMapping
+                if r["PropertyId"] == Const.PROPERTY_RELAY_ID:
+                    if r["PropertyValue"] == 0:
+                        temp[r["DeviceAddress"]]["Relay"] = False
+                    if r["PropertyValue"] == 1:
+                        temp[r["DeviceAddress"]]["Relay"] = True
+                    continue
                 if r["PropertyId"] == Const.PROPERTY_DIM_ID:
-                    temp[r["DeviceAddress"]]["DIM"] = r["PropertyValue"]
+                    temp[r["DeviceAddress"]]["DIM"] = int(r["PropertyValue"])
                     continue
                 if r["PropertyId"] == Const.PROPERTY_P_ID:
                     temp[r["DeviceAddress"]]["P"] = r["PropertyValue"]
@@ -134,6 +165,7 @@ class System:
                 temp[scene["DeviceAddress"]]["Scene"] = scene["EventTriggerId"]
         for t in temp:
             res["Devices"].append(temp[t])
+        self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
         return res
 
     def report_network_info(self) -> dict:
@@ -158,6 +190,7 @@ class System:
                 "MAC": network["GatewayMac"],
                 "FirmVer": network["FirmwareVersion"]
             }
+        self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
         return res
 
     def update_devices_online_status_to_global_dict(self):
@@ -183,7 +216,10 @@ class System:
             self.__db.Table.DeviceTable.c.DeviceAddress == device_address, {"IsOnline": is_online})
 
     def check_uart_crc_mess(self, buf: list):
-        return True
+        temp = 0
+        for i in range(2, len(buf) - 1):
+            temp += buf[i]
+        return (temp & 0xff) == buf[len(buf) - 1]
 
     def create_uart_crc_byte(self):
         return 0x00

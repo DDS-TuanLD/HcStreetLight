@@ -12,7 +12,7 @@ class Gateway:
                              Column('I', Float),
                              Column('Cos', Float),
                              Column('P', Float),
-                             Column('Minute', Float),
+                             Column('Minute', Integer),
                              Column('KWH', Float),
                              Column('ActiveTime', Integer),
                              Column('Relay_1', Boolean),

@@ -9,6 +9,7 @@ from Helper.System import System
 from GlobalVariables.GlobalVariables import GlobalVariables
 import Constants.Constant as Const
 import uuid
+from Database.Db import Db
 
 
 class RdHc(IController):
@@ -68,18 +69,16 @@ class RdHc(IController):
                         buf = self.__uart.receive_data_buf[0: trace_mes_len + 3]
                         ok = self.__systemHelper.check_uart_crc_mess(buf)
                         if ok:
-                            print(f"valid data: {buf}")
+                            self.__uartHandler.handler(buf)
                             for i in range(0, trace_mes_len + 3):
                                 self.__uart.receive_data_buf.pop(0)
                             trace_mes_len = 0
-                            print(f"buffer data left: {self.__uart.receive_data_buf}")
                         if not ok:
                             count += 1
                         if p != 0:
                             if trace_mes_len == 0:
                                 for i in range(0, p):
                                     self.__uart.receive_data_buf.pop(0)
-                                print(p)
                             if trace_mes_len != 0:
                                 if (p >= trace_mes_len + 3) or (trace_mes_len + 3 > p >= trace_mes_len + 1):
                                     for i in range(0, p):
@@ -91,6 +90,12 @@ class RdHc(IController):
                 except:
                     if count > 0:
                         count = 0
+
+    async def __hc_retry_send_mqtt_mess(self):
+        while True:
+            if len(self.__globalVariables.mqtt_need_response_dict) > 0:
+                self.__globalVariables.mqtt_need_response_dict.clear()
+                await asyncio.sleep(Const.HC_RETRY_SEND_MQTT_MESSAGE_INTERVAL)
 
     async def __hc_check_heartbeat_and_update_devices_online_status_to_db(self):
         while True:
@@ -108,6 +113,13 @@ class RdHc(IController):
             await asyncio.sleep(Const.HC_UPDATE_DEVICES_ONLINE_STATUS_TO_GLOBAL_DICT_INTERVAL)
             self.__systemHelper.update_devices_online_status_to_global_dict()
 
+    async def __hc_send_device_report(self):
+        while True:
+            print("hc report device report")
+            res = self.__systemHelper.report_device_report()
+            self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
+            await asyncio.sleep(Const.HC_REPORT_DEVICE_REPORT_INTERVAL)
+
     async def __hc_report_devices_state(self):
         while True:
             print("hc report device state")
@@ -118,11 +130,12 @@ class RdHc(IController):
     async def __hc_check_connect_with_cloud(self):
         while True:
             print("hc ping to cloud")
-            ping_mes = {
+            res = {
                 "RQI": str(uuid.uuid4()),
                 "TYPCMD": "Ping"
             }
-            self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(ping_mes))
+            self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
+            self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
             await asyncio.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
 
     async def __hc_handler_mqtt_data(self):
@@ -146,7 +159,8 @@ class RdHc(IController):
         task2 = asyncio.create_task(self.__hc_report_devices_state())
         task3 = asyncio.create_task(self.__hc_update_devices_online_status_from_db_to_global_dict())
         task4 = asyncio.create_task(self.__hc_check_heartbeat_and_update_devices_online_status_to_db())
-        # task5 = asyncio.create_task(self.__hc_receive_uart_data())
-        # task6 = asyncio.create_task(self.__hc_handler_uart_data())
-        tasks = [task0, task1, task2, task3, task4]
+        task5 = asyncio.create_task(self.__hc_send_device_report())
+        # task6 = asyncio.create_task(self.__hc_receive_uart_data())
+        # task7 = asyncio.create_task(self.__hc_handler_uart_data())
+        tasks = [task0, task1, task2, task3, task4, task5]
         await asyncio.gather(*tasks)

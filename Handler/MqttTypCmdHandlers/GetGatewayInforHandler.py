@@ -31,16 +31,14 @@ class GetGatewayInForHandler(IMqttTypeCmdHandler):
             "MAC": riim_net_info.get("GatewayMac"),
             "FirmVer": riim_net_info.get("FirmwareVersion")
         }
+        self.globalVariable.mqtt_need_response_dict[network_info_res["RQI"]] = network_info_res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(network_info_res))
 
         rel2 = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
 
-        try:
-            gateway_info = dict(rel2.first())
-        except:
-            gateway_info = {}
+        gateway_info = dict(rel2.first())
 
-        hc_relay_info_res = {
+        gateway_info_res = {
             "RQI": str(uuid.uuid4()),
             "TYPCMD": "GWRelayStt",
             "Relay_1": gateway_info.get("Relay_1"),
@@ -49,5 +47,6 @@ class GetGatewayInForHandler(IMqttTypeCmdHandler):
             "Relay_4": gateway_info.get("Relay_4")
         }
 
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(hc_relay_info_res))
+        self.globalVariable.mqtt_need_response_dict[gateway_info_res["RQI"]] = gateway_info_res
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(gateway_info_res))
 

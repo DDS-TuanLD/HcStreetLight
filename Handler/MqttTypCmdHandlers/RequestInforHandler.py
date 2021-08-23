@@ -41,10 +41,11 @@ class RequestInforHandler(IMqttTypeCmdHandler):
         self.__cmd_res(devices_info)
 
     def __cmd_res(self, devices_info: list):
-        mes_res = {
+        res = {
             "RQI": str(uuid.uuid4()),
             "TYPCMD": "DeviceInfo",
             "Devices": devices_info
         }
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(mes_res))
+        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
+        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

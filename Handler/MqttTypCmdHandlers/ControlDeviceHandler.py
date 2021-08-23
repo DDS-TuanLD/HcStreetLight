@@ -54,32 +54,7 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
 
     def __cmd_res(self, devs: list):
         db = Db()
-        # res = {
-        #     "RQI": str(uuid.uuid4()),
-        #     "TYPCMD": "Status",
-        #     "Devices": [],
-        # }
-        # rel = db.Services.DevicePropertyService.FindDevicePropertyMappingByCondition(
-        #     db.Table.DevicePropertyMappingTable.c.DeviceAddress.in_(devices)
-        # )
-        # temp = {}
-        # for device in devices:
-        #     temp[device] = {"Device": device}
-        #
-        # for r in rel:
-        #     if r["PropertyId"] == Const.PROPERTY_DIM_ID:
-        #         temp[r["DeviceAddress"]]["DIM"] = r["PropertyValue"]
-        #         continue
-        #     if r["PropertyId"] == Const.PROPERTY_RELAY_ID:
-        #         temp[r["DeviceAddress"]]["Relay"] = r["PropertyValue"]
-        #         continue
-        # for t in temp:
-        #     res["Devices"].append({
-        #         "Device": t,
-        #         "Relay": temp[t]["Relay"],
-        #         "DIM": temp[t]["DIM"]
-        #     })
-        # self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
+
         rel = db.Services.DeviceService.FindDeviceByCondition(
             db.Table.DeviceTable.c.DeviceAddress.in_(devs)
         )
@@ -116,9 +91,9 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                 temp[device["DeviceAddress"]] = {
                     "Device": device["DeviceAddress"],
                     "Online": device["IsOnline"],
-                    "Status": device["IsBroken"],
-                    "Scene": 0,
-                    "Relay": device["Relay"],
+                    "Status": 0,
+                    "Scene": device["CurrentRunningScene"],
+                    "Relay": bool(),
                     "DIM": 0,
                     "Temp": 0,
                     "Lux": 0,
@@ -132,8 +107,14 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
         if len(devicesPropertyMapping) != 0:
             for devicePropertyMapping in devicesPropertyMapping:
                 r = devicePropertyMapping
+                if r["PropertyId"] == Const.PROPERTY_RELAY_ID:
+                    if r["PropertyValue"] == 0:
+                        temp[r["DeviceAddress"]]["Relay"] = False
+                    if r["PropertyValue"] == 1:
+                        temp[r["DeviceAddress"]]["Relay"] = True
+                    continue
                 if r["PropertyId"] == Const.PROPERTY_DIM_ID:
-                    temp[r["DeviceAddress"]]["DIM"] = r["PropertyValue"]
+                    temp[r["DeviceAddress"]]["DIM"] = int(r["PropertyValue"])
                     continue
                 if r["PropertyId"] == Const.PROPERTY_P_ID:
                     temp[r["DeviceAddress"]]["P"] = r["PropertyValue"]
@@ -157,14 +138,7 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                     temp[r["DeviceAddress"]]["KWh"] = r["PropertyValue"]
                     continue
 
-        rel4 = db.Services.EventTriggerOutputDeviceMappingService.FindEventTriggerOutputDeviceMappingByCondition(
-            db.Table.EventTriggerOutputDeviceMappingTable.c.DeviceAddress.in_(devs)
-        )
-        scenes = rel4.fetchall()
-
-        if len(scenes) != 0:
-            for scene in scenes:
-                temp[scene["DeviceAddress"]]["Scene"] = scene["EventTriggerId"]
         for t in temp:
             res["Devices"].append(temp[t])
+        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
