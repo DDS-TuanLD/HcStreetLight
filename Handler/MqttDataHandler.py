@@ -61,6 +61,7 @@ class MqttDataHandler(IHandler):
                 "StopScene": self.__mqttTypeCmdHandlerManager.StopScene.handler,
                 "DeviceFirmURL": self.__mqttTypeCmdHandlerManager.DeviceFirmURL.handler,
                 "GatewayFirmURL": self.__mqttTypeCmdHandlerManager.GatewayFirmURL.handler,
+                "AddDevice": self.__mqttTypeCmdHandlerManager.AddDevice.handler,
             }
 
             func = switcher.get(cmd)

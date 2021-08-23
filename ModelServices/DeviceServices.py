@@ -36,3 +36,6 @@ class DeviceServices(metaclass=MetaDeviceServices):
     def FindAllDeviceAddress(self):
         rel = self.__deviceRepo.FindAllDeviceAddress()
         return rel
+
+    def InsertMany(self, values: list):
+        rel = self.__deviceRepo.InsertMany(values)

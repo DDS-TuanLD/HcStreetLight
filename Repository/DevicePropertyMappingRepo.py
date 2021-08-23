@@ -41,3 +41,6 @@ class DevicePropertyMappingRepo:
         })
         self.__context.execute(ins, data)
 
+    def InsertMany(self, values: list):
+        ins = self.__devicePropertyMappingTable.insert()
+        self.__context.execute(ins, values)

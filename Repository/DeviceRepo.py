@@ -33,3 +33,7 @@ class DeviceRepo:
         ins = self.__deviceTable.select(self.__deviceTable.c.DeviceAddress)
         rel = self.__context.execute(ins)
         return rel
+
+    def InsertMany(self, values: list):
+        ins = self.__deviceTable.insert()
+        self.__context.execute(ins, values)

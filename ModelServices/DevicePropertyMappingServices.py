@@ -32,3 +32,6 @@ class DevicePropertyMappingServices(metaclass=MetaDevicePropertyMappingServices)
     def FindAllDevicePropertyMapping(self):
         rel = self.__devicePropertyMappingRepo.FindAll()
         return rel
+
+    def InsertManyDevicePropertyMapping(self, values: list):
+        self.__devicePropertyMappingRepo.InsertMany(values)

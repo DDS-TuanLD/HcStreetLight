@@ -21,7 +21,7 @@ from Handler.MqttTypCmdHandlers.RebootGatewayHandler import RebootGatewayHandler
 from Handler.MqttTypCmdHandlers.RequestInforHandler import RequestInforHandler
 from Handler.MqttTypCmdHandlers.SetSceneHandler import SetSceneHandler
 from Handler.MqttTypCmdHandlers.StopSceneHandler import StopSceneHandler
-
+from Handler.MqttTypCmdHandlers.AddDeviceHandler import AddDeviceHandler
 from Constracts import ITransport
 import logging
 
@@ -51,6 +51,7 @@ class TypeCmdHandlerManager:
         self.__requestInforHandler = RequestInforHandler(log, mqtt)
         self.__setSceneHandler = SetSceneHandler(log, mqtt)
         self.__stopSceneHandler = StopSceneHandler(log, mqtt)
+        self.__addDeviceHandler = AddDeviceHandler(log, mqtt)
 
     @property
     def ActiveScene(self):
@@ -142,3 +143,7 @@ class TypeCmdHandlerManager:
     @property
     def StopScene(self):
         return self.__stopSceneHandler
+
+    @property
+    def AddDevice(self):
+        return self.__addDeviceHandler
