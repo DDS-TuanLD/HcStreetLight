@@ -34,7 +34,7 @@ mqtt.connect()
 mqttHandler = MqttDataHandler(logger, mqtt)
 
 uart = Uart(logger)
-# uart.connect()
+uart.connect()
 uartHandler = UartDataHandler(logger, uart)
 
 db = Db()
@@ -84,7 +84,7 @@ def thread_1():
 
 
 def thread_2():
-    asyncio.run(hc.hc_thread_1())
+    asyncio.run(hc.hc_thread_report_interval_and_receive_uart_data())
 
 
 # def thread_3():
@@ -107,8 +107,8 @@ def thread_2():
 #     hc.hc_receive_uart_data()
 #
 #
-# def thread_8():
-#     hc.hc_handler_uart_data()
+def thread_8():
+    hc.hc_handler_uart_data()
 
 
 def main():
@@ -121,7 +121,7 @@ def main():
     # threads.append(threading.Thread(target=thread_5, args=()))
     # threads.append(threading.Thread(target=thread_6, args=()))
     # threads.append(threading.Thread(target=thread_7, args=()))
-    # threads.append(threading.Thread(target=thread_8, args=()))
+    threads.append(threading.Thread(target=thread_8, args=()))
 
     [thread.start() for thread in threads]
     [thread.join() for thread in threads]

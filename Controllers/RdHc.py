@@ -151,14 +151,14 @@ class RdHc:
                 self.__mqttHandler.handler(item)
                 self.__mqttServices.receive_data_queue.task_done()
 
-    async def hc_thread_1(self):
+    async def hc_thread_report_interval_and_receive_uart_data(self):
         task1 = asyncio.create_task(self.hc_check_connect_with_cloud())
         task2 = asyncio.create_task(self.hc_report_devices_state())
         task3 = asyncio.create_task(self.hc_update_devices_online_status_from_db_to_global_dict())
         task4 = asyncio.create_task(self.hc_check_heartbeat_and_update_devices_online_status_to_db())
         task5 = asyncio.create_task(self.hc_send_device_report())
-        # task6 = asyncio.create_task(self.hc_receive_uart_data())
-        tasks = [task1, task2, task3, task4, task5]
+        task6 = asyncio.create_task(self.hc_receive_uart_data())
+        tasks = [task1, task2, task3, task4, task5, task6]
         await asyncio.gather(*tasks)
 
     # async def run(self):

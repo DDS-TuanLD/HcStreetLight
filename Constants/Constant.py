@@ -47,7 +47,7 @@ PropertyIdMapping = {
 }
 
 # UART
-UART_PORT = "/dev/ttyUSB0"
+UART_PORT = "COM8"
 UART_BAUD = 115200
 UART_TIMEOUT = 0.5
 
