@@ -1,5 +1,4 @@
 import threading
-
 from Database.Db import Db
 import logging
 from GlobalVariables.GlobalVariables import GlobalVariables
@@ -83,7 +82,7 @@ class System:
 
         with threading.Lock():
             rel2 = self.__db.Services.DevicePropertyService.FindAllDevicePropertyMapping()
-        devicesPropertyMapping = rel2.fetchall()
+        devices_property_mapping = rel2.fetchall()
 
         with threading.Lock():
             rel3 = self.__db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
@@ -128,8 +127,8 @@ class System:
                     "KWh": device['KWH']
                 }
 
-        if len(devicesPropertyMapping) != 0:
-            for devicePropertyMapping in devicesPropertyMapping:
+        if len(devices_property_mapping) != 0:
+            for devicePropertyMapping in devices_property_mapping:
                 r = devicePropertyMapping
                 if r["PropertyId"] == Const.PROPERTY_RELAY_ID:
                     if r["PropertyValue"] == 0:
@@ -228,11 +227,4 @@ class System:
             self.__db.Services.DeviceService.UpdateDeviceByCondition(
                 self.__db.Table.DeviceTable.c.DeviceAddress == device_address, {"IsOnline": is_online})
 
-    def check_uart_crc_mess(self, buf: list):
-        temp = 0
-        for i in range(2, len(buf) - 1):
-            temp += buf[i]
-        return (temp & 0xff) == buf[len(buf) - 1]
 
-    def create_uart_crc_byte(self):
-        return 0x00

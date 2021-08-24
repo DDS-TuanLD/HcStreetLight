@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from Controllers.RdHc import RdHc
@@ -33,7 +34,7 @@ mqtt.connect()
 mqttHandler = MqttDataHandler(logger, mqtt)
 
 uart = Uart(logger)
-uart.connect()
+# uart.connect()
 uartHandler = UartDataHandler(logger, uart)
 
 db = Db()
@@ -45,6 +46,7 @@ hc.hc_add_basic_info_to_db()
 hc.hc_report_network_info()
 hc.hc_update_devices_online_status_to_global_dict()
 hc.hc_load_devices_heartbeat_to_global_dict()
+
 
 # lock = threading.Lock()
 #
@@ -82,31 +84,31 @@ def thread_1():
 
 
 def thread_2():
-    hc.hc_check_connect_with_cloud()
+    asyncio.run(hc.hc_thread_1())
 
 
-def thread_3():
-    hc.hc_report_devices_state()
+# def thread_3():
+#     hc.hc_report_devices_state()
+#
+#
+# def thread_4():
+#     hc.hc_update_devices_online_status_from_db_to_global_dict()
+#
+#
+# def thread_5():
+#     hc.hc_check_heartbeat_and_update_devices_online_status_to_db()
+#
+#
+# def thread_6():
+#     hc.hc_send_device_report()
 
 
-def thread_4():
-    hc.hc_update_devices_online_status_from_db_to_global_dict()
-
-
-def thread_5():
-    hc.hc_check_heartbeat_and_update_devices_online_status_to_db()
-
-
-def thread_6():
-    hc.hc_send_device_report()
-
-
-def thread_7():
-    hc.hc_receive_uart_data()
-
-
-def thread_8():
-    hc.hc_handler_uart_data()
+# def thread_7():
+#     hc.hc_receive_uart_data()
+#
+#
+# def thread_8():
+#     hc.hc_handler_uart_data()
 
 
 def main():
@@ -114,12 +116,12 @@ def main():
 
     threads.append(threading.Thread(target=thread_1, args=()))
     threads.append(threading.Thread(target=thread_2, args=()))
-    threads.append(threading.Thread(target=thread_3, args=()))
-    threads.append(threading.Thread(target=thread_4, args=()))
-    threads.append(threading.Thread(target=thread_5, args=()))
-    threads.append(threading.Thread(target=thread_6, args=()))
-    threads.append(threading.Thread(target=thread_7, args=()))
-    threads.append(threading.Thread(target=thread_8, args=()))
+    # threads.append(threading.Thread(target=thread_3, args=()))
+    # threads.append(threading.Thread(target=thread_4, args=()))
+    # threads.append(threading.Thread(target=thread_5, args=()))
+    # threads.append(threading.Thread(target=thread_6, args=()))
+    # threads.append(threading.Thread(target=thread_7, args=()))
+    # threads.append(threading.Thread(target=thread_8, args=()))
 
     [thread.start() for thread in threads]
     [thread.join() for thread in threads]

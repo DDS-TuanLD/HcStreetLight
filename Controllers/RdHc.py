@@ -10,6 +10,7 @@ from GlobalVariables.GlobalVariables import GlobalVariables
 import Constants.Constant as Const
 import uuid
 import time
+from Helper.UartMessageHelper import UartMessageHelper
 
 
 class RdHc:
@@ -46,18 +47,20 @@ class RdHc:
     def hc_update_devices_online_status_to_global_dict(self):
         self.__systemHelper.update_devices_online_status_to_global_dict()
 
-    def hc_receive_uart_data(self):
+    async def hc_receive_uart_data(self):
         while True:
-            time.sleep(0.1)
+            await asyncio.sleep(0.1)
             while self.__uart.is_readable():
                 c = self.__uart.receive()
                 if c == bytes():
                     break
-                self.__uart.receive_data_buf.append(int.from_bytes(c, 'big'))
+                with self.__lock:
+                    self.__uart.receive_data_buf.append(int.from_bytes(c, 'big'))
 
     def hc_handler_uart_data(self):
         count = 0
         trace_mes_len = 0
+        uart_mess_helper = UartMessageHelper()
         while True:
             time.sleep(0.1)
             if len(self.__uart.receive_data_buf) > 3:
@@ -69,7 +72,7 @@ class RdHc:
                         if len(self.__uart.receive_data_buf) < trace_mes_len + 3:
                             break
                         buf = self.__uart.receive_data_buf[0: trace_mes_len + 3]
-                        ok = self.__systemHelper.check_uart_crc_mess(buf)
+                        ok = uart_mess_helper.check_uart_crc_mess(buf)
                         if ok:
                             self.__uartHandler.handler(buf)
                             for i in range(0, trace_mes_len + 3):
@@ -93,13 +96,13 @@ class RdHc:
                     if count > 0:
                         count = 0
 
-    def hc_retry_send_mqtt_mess(self):
+    async def hc_retry_send_mqtt_mess(self):
         while True:
             if len(self.__globalVariables.mqtt_need_response_dict) > 0:
                 self.__globalVariables.mqtt_need_response_dict.clear()
-                time.sleep(Const.HC_RETRY_SEND_MQTT_MESSAGE_INTERVAL)
+                await  asyncio.sleep(Const.HC_RETRY_SEND_MQTT_MESSAGE_INTERVAL)
 
-    def hc_check_heartbeat_and_update_devices_online_status_to_db(self):
+    async def hc_check_heartbeat_and_update_devices_online_status_to_db(self):
         while True:
             for device in self.__globalVariables.devices_heartbeat_dict:
                 if self.__globalVariables.devices_heartbeat_dict[device] < 3:
@@ -108,28 +111,28 @@ class RdHc:
                 if self.__globalVariables.devices_heartbeat_dict[device] == 3:
                     if self.__globalVariables.devices_online_status_dict[device]:
                         self.__systemHelper.update_device_online_status_to_db(device_address=device, is_online=False)
-            time.sleep(Const.HC_CHECK_HEARTBEAT_INTERVAL)
+            await asyncio.sleep(Const.HC_CHECK_HEARTBEAT_INTERVAL)
 
-    def hc_update_devices_online_status_from_db_to_global_dict(self):
+    async def hc_update_devices_online_status_from_db_to_global_dict(self):
         while True:
             self.__systemHelper.update_devices_online_status_to_global_dict()
-            time.sleep(Const.HC_UPDATE_DEVICES_ONLINE_STATUS_TO_GLOBAL_DICT_INTERVAL)
+            await asyncio.sleep(Const.HC_UPDATE_DEVICES_ONLINE_STATUS_TO_GLOBAL_DICT_INTERVAL)
 
-    def hc_send_device_report(self):
+    async def hc_send_device_report(self):
         while True:
             print("hc report device report")
             res = self.__systemHelper.report_device_report()
             self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-            time.sleep(Const.HC_REPORT_DEVICE_REPORT_INTERVAL)
+            await asyncio.sleep(Const.HC_REPORT_DEVICE_REPORT_INTERVAL)
 
-    def hc_report_devices_state(self):
+    async def hc_report_devices_state(self):
         while True:
             print("hc report device state")
             device_state_mes = self.__systemHelper.report_devices_state()
             self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(device_state_mes))
-            time.sleep(Const.HC_REPORT_DEVICE_STATE_INTERVAL)
+            await asyncio.sleep(Const.HC_REPORT_DEVICE_STATE_INTERVAL)
 
-    def hc_check_connect_with_cloud(self):
+    async def hc_check_connect_with_cloud(self):
         while True:
             print("hc ping to cloud")
             res = {
@@ -138,7 +141,7 @@ class RdHc:
             }
             self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
             self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-            time.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
+            await asyncio.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
 
     def hc_handler_mqtt_data(self):
         while True:
@@ -147,6 +150,16 @@ class RdHc:
                 item = self.__mqttServices.receive_data_queue.get()
                 self.__mqttHandler.handler(item)
                 self.__mqttServices.receive_data_queue.task_done()
+
+    async def hc_thread_1(self):
+        task1 = asyncio.create_task(self.hc_check_connect_with_cloud())
+        task2 = asyncio.create_task(self.hc_report_devices_state())
+        task3 = asyncio.create_task(self.hc_update_devices_online_status_from_db_to_global_dict())
+        task4 = asyncio.create_task(self.hc_check_heartbeat_and_update_devices_online_status_to_db())
+        task5 = asyncio.create_task(self.hc_send_device_report())
+        # task6 = asyncio.create_task(self.hc_receive_uart_data())
+        tasks = [task1, task2, task3, task4, task5]
+        await asyncio.gather(*tasks)
 
     # async def run(self):
         # self.__mqttServices.connect()

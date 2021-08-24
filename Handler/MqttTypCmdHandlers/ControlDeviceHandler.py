@@ -16,14 +16,12 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
     def handler(self, data):
         db = Db()
         rqi = data.get("RQI")
+
         mqttReceiveCommandResponse = {
             "RQI": rqi
         }
 
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
-
-        devices_control_list: list
-        groups_control_list: list
 
         devices_control_list = data.get("Device", [])
         groups_control_list = data.get("group", [])
@@ -38,18 +36,23 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
 
         unique_devices_control_list = set(devices_control_list)
         for d in unique_devices_control_list:
-            device_dim_property = {
-                "b_DeviceAddress": d,
-                "b_PropertyId": Const.PROPERTY_DIM_ID,
-                "b_PropertyValue": data.get("DIM")
-            }
-            device_relay_property = {
-                "b_DeviceAddress": d,
-                "b_PropertyId": Const.PROPERTY_RELAY_ID,
-                "b_PropertyValue": data.get("Relay")
-            }
-            devices_property.append(device_dim_property)
-            devices_property.append(device_relay_property)
+            device_dim_property = {}
+            device_relay_property = {}
+            if data.get("DIM") is not None:
+                device_dim_property = {
+                    "b_DeviceAddress": d,
+                    "b_PropertyId": Const.PROPERTY_DIM_ID,
+                    "b_PropertyValue": data.get("DIM")
+                }
+                devices_property.append(device_dim_property)
+
+            if data.get("Relay") is not None:
+                device_relay_property = {
+                    "b_DeviceAddress": d,
+                    "b_PropertyId": Const.PROPERTY_RELAY_ID,
+                    "b_PropertyValue": data.get("Relay")
+                }
+                devices_property.append(device_relay_property)
         with threading.Lock():
             db.Services.DevicePropertyService.UpdateManyDevicePropertyMappingCustomByConditionType1(devices_property)
         self.__cmd_res(list(unique_devices_control_list))

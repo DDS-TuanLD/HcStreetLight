@@ -5,6 +5,9 @@ import Constants.Constant as Const
 import json
 from Database.Db import Db
 import uuid
+import threading
+from Database.Db import Db
+import Constants.Constant as Const
 
 
 class PingGatewayHandler(IMqttTypeCmdHandler):
@@ -12,10 +15,15 @@ class PingGatewayHandler(IMqttTypeCmdHandler):
         super().__init__(log, mqtt)
 
     def handler(self, data):
+        db = Db()
+        with threading.Lock():
+            rel = db.Services.NetworkService.FindNetworkById(Const.RIIM_NETWORK_ID)
+        network = rel.fetchone()
         res = {
             "RQI": data.get("RQI"),
-            "TYPCMD": "ResponeGateway",
+            "TYPCMD": "PingGateway",
+            "MAC": network["GatewayMac"],
             "Success:": True
         }
+        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
-
