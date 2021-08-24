@@ -1,5 +1,5 @@
 import uuid
-
+import threading
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
 import Constants.Constant as Const
@@ -34,14 +34,16 @@ class ConfigGWRFHandler(IMqttTypeCmdHandler):
             if network["NetworkKey"] != data.get("Netkey"):
                 ok = self.__change_network_key()
                 if ok:
-                    db.Services.NetworkService.UpdateNetworkByCondition(
-                        db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"NetworkKey": data.get("Netkey")})
+                    with threading.Lock():
+                        db.Services.NetworkService.UpdateNetworkByCondition(
+                            db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"NetworkKey": data.get("Netkey")})
 
             if network["TXPower"] != data.get("TXPower"):
                 ok = self.__change_network_tx_power()
                 if ok:
-                    db.Services.NetworkService.UpdateNetworkByCondition(
-                        db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"TXPower": data.get("TXPower")})
+                    with threading.Lock():
+                        db.Services.NetworkService.UpdateNetworkByCondition(
+                            db.Table.NetworkTable.c.NetworkId == Const.RIIM_NETWORK_ID, {"TXPower": data.get("TXPower")})
         self.__cmd_res()
 
     def __change_network_key(self):
@@ -52,7 +54,8 @@ class ConfigGWRFHandler(IMqttTypeCmdHandler):
 
     def __cmd_res(self):
         db = Db()
-        rel = db.Services.NetworkService.FindNetworkById(Const.RIIM_NETWORK_ID)
+        with threading.Lock():
+            rel = db.Services.NetworkService.FindNetworkById(Const.RIIM_NETWORK_ID)
         network = dict(rel.fetchone())
         res = {
             "RQI": str(uuid.uuid4()),

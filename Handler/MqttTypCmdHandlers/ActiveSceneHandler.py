@@ -5,6 +5,7 @@ import Constants.Constant as Const
 import json
 from Database.Db import Db
 import uuid
+import threading
 
 
 class ActiveSceneHandler(IMqttTypeCmdHandler):
@@ -23,19 +24,20 @@ class ActiveSceneHandler(IMqttTypeCmdHandler):
         devices_start_list = data.get("Device", [])
         groups_start_list = data.get("group", [])
 
-        db.Services.EventTriggerOutputDeviceMappingService.UpdateEventTriggerOutputDeviceMappingByCondition(
-            db.Table.EventTriggerOutputDeviceMappingTable.c.DeviceAddress.in_(devices_start_list),
-            {
-                "IsEnable": True
-            }
-        )
+        with threading.Lock():
+            db.Services.EventTriggerOutputDeviceMappingService.UpdateEventTriggerOutputDeviceMappingByCondition(
+                db.Table.EventTriggerOutputDeviceMappingTable.c.DeviceAddress.in_(devices_start_list),
+                {
+                    "IsEnable": True
+                }
+            )
 
-        db.Services.EventTriggerOutputGroupMappingService.UpdateEventTriggerOutputGroupMappingByCondition(
-            db.Table.EventTriggerOutputGroupMappingTable.c.GroupId.in_(groups_start_list),
-            {
-                "IsEnable": True
-            }
-        )
+            db.Services.EventTriggerOutputGroupMappingService.UpdateEventTriggerOutputGroupMappingByCondition(
+                db.Table.EventTriggerOutputGroupMappingTable.c.GroupId.in_(groups_start_list),
+                {
+                    "IsEnable": True
+                }
+            )
         self.__cmd_res(data["ID"], devices_start_list, groups_start_list)
 
     def __cmd_res(self, scene: int, devices: list, groups: list):

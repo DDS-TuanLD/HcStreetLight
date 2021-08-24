@@ -1,3 +1,5 @@
+import threading
+
 from Database.Db import Db
 import logging
 from GlobalVariables.GlobalVariables import GlobalVariables
@@ -27,8 +29,8 @@ class System:
             "Minute": int(),
             "Devices": []
         }
-
-        rel = self.__db.Services.DeviceService.FindAllDevice()
+        with threading.Lock():
+            rel = self.__db.Services.DeviceService.FindAllDevice()
         devices = rel.fetchall()
         for d in devices:
             res["Devices"].append({
@@ -69,17 +71,22 @@ class System:
             self.__db.Services.NetworkService.InsertNetwork({
                 "NetworkId": Const.RIIM_NETWORK_ID,
                 "GatewayMac": "1213454363",
-                "FirmwareVersion": Const.FIRMWARE_FIRST_VERSION
+                "FirmwareVersion": Const.FIRMWARE_FIRST_VERSION,
+                "NetworkKey": "1234",
+                "TXPower": 0
             })
 
     def report_devices_state(self) -> dict:
-        rel = self.__db.Services.DeviceService.FindAllDevice()
+        with threading.Lock():
+            rel = self.__db.Services.DeviceService.FindAllDevice()
         devices = rel.fetchall()
 
-        rel2 = self.__db.Services.DevicePropertyService.FindAllDevicePropertyMapping()
+        with threading.Lock():
+            rel2 = self.__db.Services.DevicePropertyService.FindAllDevicePropertyMapping()
         devicesPropertyMapping = rel2.fetchall()
 
-        rel3 = self.__db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
+        with threading.Lock():
+            rel3 = self.__db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
         gateway = dict(rel3.fetchone())
 
         devices_address = []
@@ -155,9 +162,10 @@ class System:
                     temp[r["DeviceAddress"]]["KWh"] = r["PropertyValue"]
                     continue
 
-        rel4 = self.__db.Services.EventTriggerOutputDeviceMappingService.FindEventTriggerOutputDeviceMappingByCondition(
-            self.__db.Table.EventTriggerOutputDeviceMappingTable.c.DeviceAddress.in_(devices_address)
-        )
+        with threading.Lock():
+            rel4 = self.__db.Services.EventTriggerOutputDeviceMappingService.FindEventTriggerOutputDeviceMappingByCondition(
+                self.__db.Table.EventTriggerOutputDeviceMappingTable.c.DeviceAddress.in_(devices_address)
+            )
         scenes = rel4.fetchall()
 
         if len(scenes) != 0:
@@ -194,26 +202,31 @@ class System:
         return res
 
     def update_devices_online_status_to_global_dict(self):
-        devices = self.__db.Services.DeviceService.FindAllDevice()
+        with threading.Lock():
+            devices = self.__db.Services.DeviceService.FindAllDevice()
         if devices is None:
             return
         for device in devices:
             device_address = device['DeviceAddress']
             device_online_status = device['IsOnline']
-            self.__globalVariables.devices_online_status_dict[device_address] = device_online_status
+            with threading.Lock():
+                self.__globalVariables.devices_online_status_dict[device_address] = device_online_status
 
     def load_devices_heartbeat_to_global_dict(self):
-        devices = self.__db.Services.DeviceService.FindAllDevice()
+        with threading.Lock():
+            devices = self.__db.Services.DeviceService.FindAllDevice()
         if devices:
             return
         for device in devices:
             device_address = device['DeviceAddress']
             device_heartbeat_waiting_count = 0
-            self.__globalVariables.devices_heartbeat_dict[device_address] = device_heartbeat_waiting_count
+            with threading.Lock():
+                self.__globalVariables.devices_heartbeat_dict[device_address] = device_heartbeat_waiting_count
 
     def update_device_online_status_to_db(self, device_address: str, is_online: bool):
-        self.__db.Services.DeviceService.UpdateDeviceByCondition(
-            self.__db.Table.DeviceTable.c.DeviceAddress == device_address, {"IsOnline": is_online})
+        with threading.Lock():
+            self.__db.Services.DeviceService.UpdateDeviceByCondition(
+                self.__db.Table.DeviceTable.c.DeviceAddress == device_address, {"IsOnline": is_online})
 
     def check_uart_crc_mess(self, buf: list):
         temp = 0

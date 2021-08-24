@@ -5,6 +5,7 @@ from sqlalchemy.engine.base import Connection
 import Constants.Constant as Const
 from Table.TableManager import TableManager
 from ModelServices.ServicesManager import ServicesManager
+from sqlalchemy.pool import StaticPool
 
 
 class MetaDb(type):
@@ -24,7 +25,8 @@ class Db(metaclass=MetaDb):
     __services: ServicesManager
 
     def init(self):
-        self.__engine = create_engine('sqlite:///' + Const.DB_NAME, echo=True)
+        self.__engine = create_engine('sqlite:///' + Const.DB_NAME, echo=True,
+                                      connect_args={'check_same_thread': False}, poolclass=StaticPool)
         self.__tables = TableManager(self.__metadata)
         self.__metadata.create_all(self.__engine)
         self.__connect = self.__engine.connect()

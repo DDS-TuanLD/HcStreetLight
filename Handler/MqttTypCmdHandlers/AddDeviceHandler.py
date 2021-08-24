@@ -5,6 +5,7 @@ import logging
 import Constants.Constant as Const
 import json
 from Database.Db import Db
+import threading
 
 
 class AddDeviceHandler(IMqttTypeCmdHandler):
@@ -21,7 +22,8 @@ class AddDeviceHandler(IMqttTypeCmdHandler):
 
         current_devices_list = []
 
-        rel = db.Services.DeviceService.FindAllDevice()
+        with threading.Lock():
+            rel = db.Services.DeviceService.FindAllDevice()
         devices_record = rel.fetchall()
         for d in devices_record:
             current_devices_list.append(d["DeviceAddress"])
@@ -72,9 +74,9 @@ class AddDeviceHandler(IMqttTypeCmdHandler):
                     "PropertyId": Const.PROPERTY_DIM_ID,
                     "PropertyValue": 0
                 })
-
-            db.Services.DeviceService.InsertMany(devices_data_add)
-            db.Services.DevicePropertyService.InsertManyDevicePropertyMapping(devices_property_mapping_add)
+            with threading.Lock():
+                db.Services.DeviceService.InsertMany(devices_data_add)
+                db.Services.DevicePropertyService.InsertManyDevicePropertyMapping(devices_property_mapping_add)
         r = {
             "devices_same": devices_same,
             "devices_add": devices_add
@@ -98,10 +100,10 @@ class AddDeviceHandler(IMqttTypeCmdHandler):
 
             self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
             self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-
-        rel = db.Services.DeviceService.FindDeviceByCondition(
-            db.Table.DeviceTable.c.DeviceAddress.in_(r["devices_same"])
-        )
+        with threading.Lock():
+            rel = db.Services.DeviceService.FindDeviceByCondition(
+                db.Table.DeviceTable.c.DeviceAddress.in_(r["devices_same"])
+            )
         devices = rel.fetchall()
         for d in devices:
             res = {

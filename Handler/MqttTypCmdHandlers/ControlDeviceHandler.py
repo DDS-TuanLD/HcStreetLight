@@ -6,6 +6,7 @@ import json
 from Database.Db import Db
 import uuid
 from sqlalchemy import and_, bindparam
+import threading
 
 
 class ControlDeviceHandler(IMqttTypeCmdHandler):
@@ -28,12 +29,12 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
         groups_control_list = data.get("group", [])
         devices_property = []
 
-        for g in groups_control_list:
+        with threading.Lock():
             rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
-                db.Table.GroupDeviceMappingTable.c.GroupId == g
+                db.Table.GroupDeviceMappingTable.c.GroupId.in_(groups_control_list)
             )
-            for r in rel:
-                devices_control_list.append(r["DeviceAddress"])
+        for r in rel:
+            devices_control_list.append(r["DeviceAddress"])
 
         unique_devices_control_list = set(devices_control_list)
         for d in unique_devices_control_list:
@@ -49,23 +50,26 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
             }
             devices_property.append(device_dim_property)
             devices_property.append(device_relay_property)
-        db.Services.DevicePropertyService.UpdateManyDevicePropertyMappingCustomByConditionType1(devices_property)
+        with threading.Lock():
+            db.Services.DevicePropertyService.UpdateManyDevicePropertyMappingCustomByConditionType1(devices_property)
         self.__cmd_res(list(unique_devices_control_list))
 
     def __cmd_res(self, devs: list):
         db = Db()
-
-        rel = db.Services.DeviceService.FindDeviceByCondition(
-            db.Table.DeviceTable.c.DeviceAddress.in_(devs)
-        )
+        with threading.Lock():
+            rel = db.Services.DeviceService.FindDeviceByCondition(
+                db.Table.DeviceTable.c.DeviceAddress.in_(devs)
+            )
         devices = rel.fetchall()
 
-        rel2 = db.Services.DevicePropertyService.FindDevicePropertyMappingByCondition(
-            db.Table.DevicePropertyMappingTable.c.DeviceAddress.in_(devs)
-        )
+        with threading.Lock():
+            rel2 = db.Services.DevicePropertyService.FindDevicePropertyMappingByCondition(
+                db.Table.DevicePropertyMappingTable.c.DeviceAddress.in_(devs)
+            )
         devicesPropertyMapping = rel2.fetchall()
 
-        rel3 = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
+        with threading.Lock():
+            rel3 = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
         gateway = dict(rel3.fetchone())
 
         res = {

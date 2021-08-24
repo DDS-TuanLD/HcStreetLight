@@ -25,3 +25,7 @@ class GroupServices(metaclass=MetaGroupServices):
     def FindGroupByCondition(self, condition: BinaryExpression):
         rel = self.__groupRepo.FindByCondition(condition)
         return rel
+
+    def FindAllGroup(self):
+        rel = self.__groupRepo.FindAll()
+        return rel

@@ -5,6 +5,7 @@ import logging
 import Constants.Constant as Const
 import json
 from Database.Db import Db
+import threading
 
 
 class ConfigDevHandler(IMqttTypeCmdHandler):
@@ -12,6 +13,7 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
         super().__init__(log, mqtt)
 
     def handler(self, data):
+        print(data)
         db = Db()
 
         mqttReceiveCommandResponse = {
@@ -26,34 +28,49 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
         groups = data.get("Group", [])
         devices = data.get("Device", [])
 
-        for group in groups:
+        with threading.Lock():
             rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
-                db.Table.GroupDeviceMappingTable.c.GroupId == group
+                db.Table.GroupDeviceMappingTable.c.GroupId.in_(groups)
             )
 
-            for r in rel:
-                devices.append(r["DeviceAddress"])
+        for r in rel:
+            devices.append(r["DeviceAddress"])
 
         unique_devices = set(devices)
-        update_data = {
-            "PRating": data.get("PRating"),
-            "TXPower": data.get("TXPower"),
-            "DimInit": data.get("DimInit"),
-            "VMax": data.get("VMax"),
-            "VMin": data.get("VMin"),
-            "IMax": data.get("IMax"),
-            "IMin": data.get("IMin"),
-            "CosMax": data.get("CosMax"),
-            "CosMin": data.get("CosMin"),
-            "PMax": data.get("Pmax"),
-            "PMin": data.get("Pmin"),
-            "TMax": data.get("TMax"),
-            "TMin": data.get("TMin")
-        }
+        update_data = {}
 
-        db.Services.DeviceService.UpdateDeviceByCondition(
-            db.Table.DeviceTable.c.DeviceAddress.in_(unique_devices), update_data
-        )
+        if data.get("PRating") is not None:
+            update_data["PRating"] = data.get("PRating")
+        if data.get("TXPower") is not None:
+            update_data["TXPower"] = data.get("TXPower")
+        if data.get("DimInit") is not None:
+            update_data["DimInit"] = data.get("DimInit")
+        if data.get("VMax") is not None:
+            update_data["VMax"] = data.get("VMax")
+        if data.get("VMin") is not None:
+            update_data["VMin"] = data.get("VMin")
+        if data.get("IMax") is not None:
+            update_data["IMax"] = data.get("IMax")
+        if data.get("IMin") is not None:
+            update_data["IMin"] = data.get("IMin")
+        if data.get("CosMax") is not None:
+            update_data["CosMax"] = data.get("CosMax")
+        if data.get("CosMin") is not None:
+            update_data["CosMin"] = data.get("CosMin")
+        if data.get("Pmax") is not None:
+            update_data["PMax"] = data.get("Pmax")
+        if data.get("Pmin") is not None:
+            update_data["PMin"] = data.get("Pmin")
+        if data.get("TMax") is not None:
+            update_data["TMax"] = data.get("TMax")
+        if data.get("TMin") is not None:
+            update_data["TMin"] = data.get("TMin")
+        print(update_data)
+        if update_data:
+            with threading.Lock():
+                db.Services.DeviceService.UpdateDeviceByCondition(
+                    db.Table.DeviceTable.c.DeviceAddress.in_(unique_devices), update_data
+                )
 
         result = {
             "devices_success": unique_devices,
@@ -68,9 +85,10 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
             "TYPCMD": "DeviceConfig",
             "Devices": []
         }
-        rel = db.Services.DeviceService.FindDeviceByCondition(
-            db.Table.DeviceTable.c.DeviceAddress.in_(result["devices_success"])
-        )
+        with threading.Lock():
+            rel = db.Services.DeviceService.FindDeviceByCondition(
+                db.Table.DeviceTable.c.DeviceAddress.in_(result["devices_success"])
+            )
 
         for d in rel:
             temp = {

@@ -42,8 +42,7 @@ class Mqtt(ITransport):
         message = msg.payload.decode("utf-8")
         topic = msg.topic
         item = {"topic": topic, "msg": message}
-        with self.__lock:
-            self.receive_data_queue.put(item)
+        self.receive_data_queue.put(item)
         return
 
     def __on_connect(self, client, userdata, flags, rc):
