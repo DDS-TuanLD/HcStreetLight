@@ -1,5 +1,7 @@
 import json
 import logging
+import threading
+
 import Constants.Constant as Const
 from Constracts.IHandler import IHandler
 from Constracts.ITransport import ITransport
@@ -75,7 +77,8 @@ class MqttDataHandler(IHandler):
         try:
             json_data = json.loads(data)
             rqi = json_data.get("RQI")
-            self.globalVariable.mqtt_need_response_dict.pop(rqi)
+            with threading.Lock():
+                self.globalVariable.mqtt_need_response_dict.pop(rqi)
         except:
             self.__logger.error(f"mqtt data receiver in topic {Const.MQTT_DEVICE_TO_CLOUD_RESPONSE_TOPIC} invalid")
             print(f"mqtt data receiver in topic {Const.MQTT_DEVICE_TO_CLOUD_RESPONSE_TOPIC} invalid")

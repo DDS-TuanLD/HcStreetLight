@@ -108,6 +108,6 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
                 "TMin": d["TMin"]
             }
             res["Devices"].append(temp)
-
-        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
+        with threading.Lock():
+            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))

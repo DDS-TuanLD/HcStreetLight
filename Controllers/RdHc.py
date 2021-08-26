@@ -98,7 +98,8 @@ class RdHc:
     async def __hc_retry_send_mqtt_mess(self):
         while True:
             if len(self.__globalVariables.mqtt_need_response_dict) > 0:
-                self.__globalVariables.mqtt_need_response_dict.clear()
+                with self.__lock:
+                    self.__globalVariables.mqtt_need_response_dict.clear()
                 await asyncio.sleep(Const.HC_RETRY_SEND_MQTT_MESSAGE_INTERVAL)
 
     async def __hc_check_heartbeat_and_update_devices_online_status_to_db(self):
@@ -138,7 +139,8 @@ class RdHc:
                 "RQI": str(uuid.uuid4()),
                 "TYPCMD": "Ping"
             }
-            self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
+            with self.__lock:
+                self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
             self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
             await asyncio.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
 
@@ -146,7 +148,8 @@ class RdHc:
         while True:
             time.sleep(0.1)
             if not self.__mqttServices.receive_data_queue.empty():
-                item = self.__mqttServices.receive_data_queue.get()
+                with self.__lock:
+                    item = self.__mqttServices.receive_data_queue.get()
                 self.__mqttHandler.handler(item)
                 self.__mqttServices.receive_data_queue.task_done()
 

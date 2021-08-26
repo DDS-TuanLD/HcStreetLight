@@ -25,5 +25,4 @@ class PingGatewayHandler(IMqttTypeCmdHandler):
             "MAC": network["GatewayMac"],
             "Success:": True
         }
-        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))

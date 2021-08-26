@@ -37,8 +37,8 @@ class System:
                 "KWh": 0,
                 "Minute": 0
             })
-
-        self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
+        with threading.Lock():
+            self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
         return res
 
     def add_basic_info_to_db(self):
@@ -177,7 +177,8 @@ class System:
                 temp[scene["DeviceAddress"]]["Scene"] = scene["EventTriggerId"]
         for t in temp:
             res["Devices"].append(temp[t])
-        self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
+        with threading.Lock():
+            self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
         return res
 
     def report_network_info(self) -> dict:
@@ -202,7 +203,8 @@ class System:
                 "MAC": network["GatewayMac"],
                 "FirmVer": network["FirmwareVersion"]
             }
-        self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
+        with threading.Lock():
+            self.__globalVariables.mqtt_need_response_dict[res["RQI"]] = res
         return res
 
     def update_devices_online_status_to_global_dict(self):

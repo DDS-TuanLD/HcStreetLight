@@ -1,3 +1,4 @@
+import threading
 import uuid
 from Constracts.IMqttTypeCmdHandler import IMqttTypeCmdHandler
 from Constracts import ITransport
@@ -64,6 +65,7 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
                 "Success": False
             }
             res["Devices"].append(device)
-        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
+        with threading.Lock():
+            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

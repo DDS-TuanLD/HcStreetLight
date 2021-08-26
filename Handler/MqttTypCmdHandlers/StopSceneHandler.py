@@ -5,6 +5,7 @@ import logging
 import Constants.Constant as Const
 import json
 from Database.Db import Db
+import threading
 
 
 class StopSceneHandler(IMqttTypeCmdHandler):
@@ -57,6 +58,7 @@ class StopSceneHandler(IMqttTypeCmdHandler):
                 "Group": g,
                 "Success": True
             })
-        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
+        with threading.Lock():
+            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

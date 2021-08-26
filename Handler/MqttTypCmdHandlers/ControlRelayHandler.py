@@ -5,6 +5,7 @@ import json
 from Database.Db import Db
 import uuid
 import Constants.Constant as Const
+import threading
 
 
 class ControlRelayHandler(IMqttTypeCmdHandler):
@@ -43,6 +44,7 @@ class ControlRelayHandler(IMqttTypeCmdHandler):
             "Relay_3": gateway.get("Relay_3"),
             "Relay_4": gateway.get("Relay_4")
         }
-        self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
+        with threading.Lock():
+            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
         self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 
