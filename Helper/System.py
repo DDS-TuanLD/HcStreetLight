@@ -16,7 +16,7 @@ class System:
     def __init__(self, logger: logging.Logger):
         self.__logger = logger
 
-    def report_device_report(self) -> dict:
+    def send_device_report(self) -> dict:
         timestamp_now = time.time()
         t = datetime.datetime.fromtimestamp(timestamp_now).strftime("%Y%m%d")
 
@@ -77,7 +77,7 @@ class System:
                 "TXPower": 0
             })
 
-    def report_devices_state(self) -> dict:
+    def send_devices_state(self) -> dict:
         with threading.Lock():
             rel = self.__db.Services.DeviceService.FindAllDevice()
         devices = rel.fetchall()
