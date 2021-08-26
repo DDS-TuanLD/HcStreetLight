@@ -1,6 +1,5 @@
 import asyncio
 import time
-
 from Controllers.RdHc import RdHc
 import threading
 from Database.Db import Db
@@ -34,7 +33,7 @@ mqtt.connect()
 mqttHandler = MqttDataHandler(logger, mqtt)
 
 uart = Uart(logger)
-uart.connect()
+# uart.connect()
 uartHandler = UartDataHandler(logger, uart)
 
 db = Db()
@@ -103,10 +102,10 @@ def thread_2():
 #     hc.hc_send_device_report()
 
 
-# def thread_7():
-#     hc.hc_receive_uart_data()
-#
-#
+def thread_7():
+    hc.hc_receive_uart_data()
+
+
 def thread_8():
     hc.hc_handler_uart_data()
 
@@ -121,7 +120,7 @@ def main():
     # threads.append(threading.Thread(target=thread_5, args=()))
     # threads.append(threading.Thread(target=thread_6, args=()))
     # threads.append(threading.Thread(target=thread_7, args=()))
-    threads.append(threading.Thread(target=thread_8, args=()))
+    # threads.append(threading.Thread(target=thread_8, args=()))
 
     [thread.start() for thread in threads]
     [thread.join() for thread in threads]

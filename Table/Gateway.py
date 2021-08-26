@@ -15,6 +15,8 @@ class Gateway:
                              Column('Minute', Integer),
                              Column('KWH', Float),
                              Column('ActiveTime', Integer),
+                             Column('Scene', Integer),
+                             Column('Status', Integer),
                              Column('Relay_1', Boolean),
                              Column('Relay_2', Boolean),
                              Column('Relay_3', Boolean),

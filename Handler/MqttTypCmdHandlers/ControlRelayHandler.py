@@ -19,24 +19,20 @@ class ControlRelayHandler(IMqttTypeCmdHandler):
         }
 
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
-        rel = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
-        gateway = rel.fetchone()
-        print(str(gateway))
-        if gateway is not None:
-            db.Services.GatewayService.UpdateGatewayById(Const.GATEWAY_ID, data.get("Control"))
-        if gateway is None:
-            db.Services.GatewayService.InsertGateway({
-                "GatewayId": Const.GATEWAY_ID,
-                "Relay_1": data.get("Control").get("Relay_1"),
-                "Relay_2": data.get("Control").get("Relay_2"),
-                "Relay_3": data.get("Control").get("Relay_3"),
-                "Relay_4": data.get("Control").get("Relay_4")
-            })
+        relays_control = data.get("Control").get("RelayID", [])
+        print(relays_control)
+        r = {}
+        for relay in relays_control:
+            relay_name = "Relay_" + str(relay)
+            print(relay_name)
+            r[relay_name] = data.get("Control").get("Relay")
+        print(r)
+        self.__cmd_res(r)
 
-        self.__cmd_res()
-
-    def __cmd_res(self):
+    def __cmd_res(self, r: dict):
         db = Db()
+        db.Services.GatewayService.UpdateGatewayById(Const.GATEWAY_ID, r)
+
         rel = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
         gateway = dict(rel.fetchone())
         res = {

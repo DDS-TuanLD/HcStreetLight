@@ -14,4 +14,4 @@ class UartDataHandler(IHandler):
         self.__uart = uart
 
     def handler(self, item):
-        print(bytes(item))
+        print(item)

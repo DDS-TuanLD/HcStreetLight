@@ -3,7 +3,6 @@ import json
 import logging
 import threading
 from Constracts.ITransport import ITransport
-from Constracts.IController import IController
 from Constracts.IHandler import IHandler
 from Helper.System import System
 from GlobalVariables.GlobalVariables import GlobalVariables
@@ -47,9 +46,9 @@ class RdHc:
     def hc_update_devices_online_status_to_global_dict(self):
         self.__systemHelper.update_devices_online_status_to_global_dict()
 
-    async def hc_receive_uart_data(self):
+    def hc_receive_uart_data(self):
         while True:
-            await asyncio.sleep(0.1)
+            time.sleep(0.1)
             while self.__uart.is_readable():
                 c = self.__uart.receive()
                 if c == bytes():
@@ -100,7 +99,7 @@ class RdHc:
         while True:
             if len(self.__globalVariables.mqtt_need_response_dict) > 0:
                 self.__globalVariables.mqtt_need_response_dict.clear()
-                await  asyncio.sleep(Const.HC_RETRY_SEND_MQTT_MESSAGE_INTERVAL)
+                await asyncio.sleep(Const.HC_RETRY_SEND_MQTT_MESSAGE_INTERVAL)
 
     async def hc_check_heartbeat_and_update_devices_online_status_to_db(self):
         while True:
@@ -157,8 +156,7 @@ class RdHc:
         task3 = asyncio.create_task(self.hc_update_devices_online_status_from_db_to_global_dict())
         task4 = asyncio.create_task(self.hc_check_heartbeat_and_update_devices_online_status_to_db())
         task5 = asyncio.create_task(self.hc_send_device_report())
-        task6 = asyncio.create_task(self.hc_receive_uart_data())
-        tasks = [task1, task2, task3, task4, task5, task6]
+        tasks = [task1, task2, task3, task4, task5]
         await asyncio.gather(*tasks)
 
     # async def run(self):

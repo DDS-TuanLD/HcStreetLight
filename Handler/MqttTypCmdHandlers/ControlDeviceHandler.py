@@ -86,7 +86,10 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                 "Cos": gateway.get("Cos"),
                 "P": gateway.get("P"),
                 "Minute": gateway.get("Minute"),
-                "KWh": gateway.get("KWH")
+                "KWh": gateway.get("KWH"),
+                "Scene": gateway.get("Scene"),
+                "Relay": gateway.get("Relay_1") | gateway.get("Relay_2") | gateway.get("Relay_3") | gateway.get("Relay_4"),
+                "Status": gateway.get("Status")
             },
             "Devices": []
         }

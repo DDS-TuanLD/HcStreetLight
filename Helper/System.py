@@ -60,18 +60,20 @@ class System:
                 "Minute": 0,
                 "KWH": 0,
                 "ActiveTime": 0,
-                "Relay_1": True,
-                "Relay_2": True,
-                "Relay_3": True,
-                "Relay_4": True,
+                "Scene": 0,
+                "Status": 0,
+                "Relay_1": False,
+                "Relay_2": False,
+                "Relay_3": False,
+                "Relay_4": False,
 
             })
         if network is None:
             self.__db.Services.NetworkService.InsertNetwork({
                 "NetworkId": Const.RIIM_NETWORK_ID,
-                "GatewayMac": "1213454363",
+                "GatewayMac": "000000000000",
                 "FirmwareVersion": Const.FIRMWARE_FIRST_VERSION,
-                "NetworkKey": "1234",
+                "NetworkKey": "111111111111",
                 "TXPower": 0
             })
 
@@ -101,7 +103,10 @@ class System:
                 "Cos": gateway.get("Cos"),
                 "P": gateway.get("P"),
                 "Minute": gateway.get("Minute"),
-                "KWh": gateway.get("KWH")
+                "KWh": gateway.get("KWH"),
+                "Scene": gateway.get("Scene"),
+                "Relay": gateway.get("Relay_1") | gateway.get("Relay_2") | gateway.get("Relay_3") | gateway.get("Relay_4"),
+                "Status": gateway.get("Status")
             },
             "Devices": []
         }
