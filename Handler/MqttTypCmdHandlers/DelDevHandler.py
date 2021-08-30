@@ -38,7 +38,7 @@ class DelDevHandler(IMqttTypeCmdHandler):
         db.Services.EventTriggerOutputDeviceSetupValueService.RemoveEventTriggerOutputDeviceSetupValueByCondition(
             db.Table.EventTriggerOutputDeviceSetupValueTable.c.DeviceAddress.in_(devices)
         )
-        self.__cmd_res(devices)
+        # self.__cmd_res(devices)
 
     def __cmd_res(self, devices: list):
         res = {

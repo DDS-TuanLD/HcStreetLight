@@ -38,7 +38,7 @@ class ActiveSceneHandler(IMqttTypeCmdHandler):
                     "IsEnable": True
                 }
             )
-        self.__cmd_res(data["ID"], devices_start_list, groups_start_list)
+        # self.__cmd_res(data["ID"], devices_start_list, groups_start_list)
 
     def __cmd_res(self, scene: int, devices: list, groups: list):
         res = {

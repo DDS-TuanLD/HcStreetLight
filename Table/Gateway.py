@@ -14,11 +14,20 @@ class Gateway:
                              Column('P', Float),
                              Column('Minute', Integer),
                              Column('KWH', Float),
+                             Column('Ip', String),
                              Column('ActiveTime', Integer),
-                             Column('Scene', Integer),
+                             Column('Scene_1', Integer),
+                             Column('Scene_2', Integer),
+                             Column('Scene_3', Integer),
+                             Column('Scene_4', Integer),
+                             Column('Minute_1', Integer),
+                             Column('Minute_2', Integer),
+                             Column('Minute_3', Integer),
+                             Column('Minute_4', Integer),
                              Column('Status', Integer),
                              Column('Relay_1', Boolean),
                              Column('Relay_2', Boolean),
                              Column('Relay_3', Boolean),
                              Column('Relay_4', Boolean)
+
                              )

@@ -65,7 +65,7 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
             update_data["TMax"] = data.get("TMax")
         if data.get("TMin") is not None:
             update_data["TMin"] = data.get("TMin")
-        print(update_data)
+
         if update_data:
             with threading.Lock():
                 db.Services.DeviceService.UpdateDeviceByCondition(

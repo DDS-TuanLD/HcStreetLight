@@ -61,11 +61,20 @@ class System:
                 "KWH": 0,
                 "ActiveTime": 0,
                 "Scene": 0,
+                "Ip": "",
                 "Status": 0,
                 "Relay_1": False,
                 "Relay_2": False,
                 "Relay_3": False,
                 "Relay_4": False,
+                "Scene_1": 0,
+                "Scene_2": 0,
+                "Scene_3": 0,
+                "Scene_4": 0,
+                "Minute_1": 0,
+                "Minute_2": 0,
+                "Minute_3": 0,
+                "Minute_4": 0,
 
             })
         if network is None:
@@ -77,7 +86,7 @@ class System:
                 "TXPower": 0
             })
 
-    def send_devices_state(self) -> dict:
+    def send_devices_status(self) -> dict:
         with threading.Lock():
             rel = self.__db.Services.DeviceService.FindAllDevice()
         devices = rel.fetchall()

@@ -37,7 +37,7 @@ class StopSceneHandler(IMqttTypeCmdHandler):
                 "IsEnable": False
             }
         )
-        self.__cmd_res(data["ID"], devices_stop_list, groups_stop_list)
+        # self.__cmd_res(data["ID"], devices_stop_list, groups_stop_list)
 
     def __cmd_res(self, scene: int, devices: list, groups: list):
         res = {

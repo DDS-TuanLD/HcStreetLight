@@ -32,7 +32,7 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             self.__remove_all_event_data(data.get("ID"))
             r = self.__save_new_scene_to_db(data)
 
-        self.__cmd_res(data.get("ID"), r)
+        # self.__cmd_res(data.get("ID"), r)
 
     def __save_new_scene_to_db(self, data) -> dict:
         db = Db()
@@ -130,6 +130,12 @@ class SetSceneHandler(IMqttTypeCmdHandler):
                 "PropertyId": Const.PROPERTY_DIM_ID,
                 "PropertyValue": action.get("DIM")
             }
+            group_output_type_setup_value = {
+                "EventTriggerId": data.get("ID"),
+                "GroupId": group_output_action.get("GroupId"),
+                "PropertyId": Const.PROPERTY_TYPE_ID,
+                "PropertyValue": action.get("Type")
+            }
             group_output_mapping = {
                 "EventTriggerId": data.get("ID"),
                 "GroupId": group_output_action.get("GroupId"),
@@ -137,6 +143,8 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             }
             groups_output_setup_value.append(group_output_relay_setup_value)
             groups_output_setup_value.append(group_output_dim_setup_value)
+            groups_output_setup_value.append(group_output_type_setup_value)
+
             groups_output_mapping.append(group_output_mapping)
             groups_success_list.append(group_output_action.get("GroupId"))
 

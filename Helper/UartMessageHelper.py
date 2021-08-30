@@ -61,7 +61,6 @@ class UartMessageHelper:
         for i in range(0, len(para)):
             send_data.append(para[i])
         send_data.append(0)
-        print(send_data)
         send_data[len(send_data) - 1] = self.create_uart_crc_byte(send_data)
         for i in range(0, 48-len(send_data)):
             send_data.append(0)
@@ -106,7 +105,7 @@ class UartMessageHelper:
     def create_request_set_net_key_border_router(self, netkey: list) -> list:
         mess = list()
         for i in range(0, len(netkey)):
-            mess.append(netkey)
+            mess.append(netkey[i])
         send_data = self.create_uart_message(UART_OPCODE_AI_TO_RIIM_SET_NET_KEY_BORDER_ROUTER, mess)
         return send_data
 
@@ -304,10 +303,3 @@ class UartMessageHelper:
         mes.append(prating & 0xff)
         send_data = self.create_uart_message(UART_OPCODE_AI_TO_RIIM_SET_PRATING_ALL, mes)
         return send_data
-
-# u = UartMessageHelper()
-#
-# t = u.create_request_set_tx_power_mesh_router(
-#     [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18], 10)
-# print(t)
-# print(len(t))

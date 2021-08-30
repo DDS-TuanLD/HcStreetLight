@@ -22,6 +22,9 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
         db = Db()
         groupId = data.get("GroupID")
         devices = data.get("Device", [])
+        devices_address = []
+        for d in devices:
+            devices_address.append(d.get("Device"))
 
         rel = db.Services.GroupService.FindGroupByCondition(
             db.Table.GroupTable.c.GroupId == groupId
@@ -31,20 +34,46 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
         if group is None:
             db.Services.GroupService.InsertGroup({"GroupId": groupId})
 
-        group_device_mapping_dict_list = []
-        for device in devices:
-            group_device_mapping = {
-                "GroupId": groupId,
-                "DeviceAddress": device
-            }
-            group_device_mapping_dict_list.append(group_device_mapping)
-        db.Services.GroupDeviceMappingService.InsertManyGroupDeviceMapping(group_device_mapping_dict_list)
+            group_device_mapping_dict_list = []
+            for device in devices:
+                group_device_mapping = {
+                    "GroupId": groupId,
+                    "DeviceAddress": device["Device"],
+                    "Number": device["ID"]
+                }
+                group_device_mapping_dict_list.append(group_device_mapping)
+            db.Services.GroupDeviceMappingService.InsertManyGroupDeviceMapping(group_device_mapping_dict_list)
 
-        r = {
-            "devices_success": devices,
-            "devices_failure": []
-        }
-        self.__cmd_res(groupId, r)
+        if group is not None:
+            group_device_mapping_dict_list = []
+            devices_update_list = []
+            current_group_devices = []
+            rel2 = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
+                db.Table.GroupDeviceMappingTable.c.GroupId == groupId
+            )
+            currentGroupDeviceMapping = rel2.fetchall()
+            for c in currentGroupDeviceMapping:
+                current_group_devices.append(c["DeviceAddress"])
+            devices_duplicate = list(set(devices_address).intersection(current_group_devices))
+            db.Services.GroupDeviceMappingService.RemoveGroupDeviceMappingByCondition(
+                db.Table.GroupDeviceMappingTable.c.DeviceAddress.in_(devices_duplicate)
+            )
+            for device in devices:
+                group_device_mapping = {
+                    "GroupId": groupId,
+                    "DeviceAddress": device["Device"],
+                    "Number": device["ID"]
+                }
+                devices_update_list.append(device["Device"])
+                group_device_mapping_dict_list.append(group_device_mapping)
+
+            db.Services.GroupDeviceMappingService.InsertManyGroupDeviceMapping(group_device_mapping_dict_list)
+
+        # r = {
+        #     "devices_success": devices,
+        #     "devices_failure": []
+        # }
+        # self.__cmd_res(groupId, r)
 
     def __cmd_res(self, group: int, rel: dict):
         res = {

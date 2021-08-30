@@ -16,6 +16,10 @@ from Table.EventTriggerOutputGroupSetupValue import EventTriggerOutputGroupSetup
 from Table.GroupDeviceMapping import GroupDeviceMapping
 from Table.DeviceFirmwareUpdate import DeviceFirmwareUpdate
 from Table.GatewayFirmwareUpdate import GatewayFirmwareUpdate
+from Table.GatewayEventTriggerOutputRelay import GatewayEventTriggerOutputRelay
+from Table.GatewayEventTrigger import GatewayEventTrigger
+from Table.GatewayEventTriggerInputDeviceMappingSetupValue import GatewayEventTriggerInputDeviceSetupValue
+from Table.GatewayEventTriggerInputDeviceMapping import GatewayEventTriggerInputDeviceMapping
 
 
 class TableManager:
@@ -37,6 +41,26 @@ class TableManager:
         self.__groupDeviceMappingTable = GroupDeviceMapping(metadata)
         self.__deviceFirmwareUpdateTable = DeviceFirmwareUpdate(metadata)
         self.__gatewayFirmwareUpdateTable = GatewayFirmwareUpdate(metadata)
+        self.__gatewayEventTriggerOutputRelay = GatewayEventTriggerOutputRelay(metadata)
+        self.__gatewayEventTriggerInputDeviceMapping = GatewayEventTriggerInputDeviceMapping(metadata)
+        self.__gatewayEventTriggerInputDeviceSetupValue = GatewayEventTriggerInputDeviceSetupValue(metadata)
+        self.__gatewayEventTrigger = GatewayEventTrigger(metadata)
+
+    @property
+    def GatewayEventTriggerOutputRelayTable(self):
+        return self.__gatewayEventTriggerOutputRelay
+
+    @property
+    def GatewayEventTriggerInputDeviceMappingTable(self):
+        return self.__gatewayEventTriggerInputDeviceMapping
+
+    @property
+    def GatewayEventTriggerInputDeviceSetupValueTable(self):
+        return self.__gatewayEventTriggerInputDeviceSetupValue
+
+    @property
+    def GatewayEventTriggerTable(self):
+        return self.__gatewayEventTrigger
 
     @property
     def GroupTable(self):
@@ -106,3 +130,6 @@ class TableManager:
     def GatewayFirmwareUpdateTable(self):
         return self.__gatewayFirmwareUpdateTable.gatewayFirmwareUpdate
 
+    @property
+    def GatewayEventTriggerOutputRelayTable(self):
+        return self.__gatewayEventTriggerOutputRelay

@@ -35,7 +35,7 @@ class DelDevFrGroupHandler(IMqttTypeCmdHandler):
             "devices_success": devices,
             "devices_failure": []
         }
-        self.__cmd_res(groupId, r)
+        # self.__cmd_res(groupId, r)
 
     def __cmd_res(self, group: int, r: dict):
         res = {

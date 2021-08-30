@@ -20,20 +20,13 @@ class ControlRelayHandler(IMqttTypeCmdHandler):
         }
 
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
-        relays_control = data.get("Control").get("RelayID", [])
-        print(relays_control)
-        r = {}
-        for relay in relays_control:
-            relay_name = "Relay_" + str(relay)
-            print(relay_name)
-            r[relay_name] = data.get("Control").get("Relay")
-        print(r)
-        self.__cmd_res(r)
+        relays_control = data.get("Control")
+        db.Services.GatewayService.UpdateGatewayById(Const.GATEWAY_ID, relays_control)
 
-    def __cmd_res(self, r: dict):
+        # self.__cmd_res()
+
+    def __cmd_res(self):
         db = Db()
-        db.Services.GatewayService.UpdateGatewayById(Const.GATEWAY_ID, r)
-
         rel = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
         gateway = dict(rel.fetchone())
         res = {

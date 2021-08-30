@@ -42,7 +42,7 @@ class DelSceneHandler(IMqttTypeCmdHandler):
         db.Services.EventTriggerService.RemoveEventTriggerByCondition(
             db.Table.EventTriggerTable.c.EventTriggerId == event_delete
         )
-        self.__cmd_res(event_delete, True)
+        # self.__cmd_res(event_delete, True)
 
     def __cmd_res(self, event_id: int, success: bool):
         res = {

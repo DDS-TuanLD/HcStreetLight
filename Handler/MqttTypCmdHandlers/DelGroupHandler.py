@@ -25,7 +25,7 @@ class DelGroupHandler(IMqttTypeCmdHandler):
         db.Services.GroupDeviceMappingService.RemoveGroupDeviceMappingByCondition(
             db.Table.GroupDeviceMappingTable.c.GroupId == group_delete
         )
-        self.__cmd_res(group_delete)
+        # self.__cmd_res(group_delete)
 
     def __cmd_res(self, group: int):
         res = {

@@ -35,7 +35,7 @@ class AddDeviceHandler(IMqttTypeCmdHandler):
             for d in devices_add:
                 devices_data_add.append({
                     'DeviceAddress': d,
-                    'Ip': "",
+                    'Ip': "121212121212",
                     'NetKey': "",
                     'PanId_1': "",
                     'PanId_2': "",
@@ -81,7 +81,7 @@ class AddDeviceHandler(IMqttTypeCmdHandler):
             "devices_same": devices_same,
             "devices_add": devices_add
         }
-        self.__cmd_res(r)
+        # self.__cmd_res(r)
 
     def __cmd_res(self, r: dict):
         db = Db()

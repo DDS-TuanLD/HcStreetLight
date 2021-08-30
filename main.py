@@ -10,6 +10,9 @@ from Handler.MqttDataHandler import MqttDataHandler
 from Handler.UartDataHandler import UartDataHandler
 import os
 from HcServices.Uart import Uart
+from Helper.UartMessageHelper import UartMessageHelper
+from ctypes import *
+from cffi import FFI
 
 file_dir = os.path.dirname(__file__)
 
@@ -28,12 +31,36 @@ logging_handler.setFormatter(logging_formatter)
 logger.addHandler(logging_handler)
 logger.setLevel(logging.DEBUG)
 
+# ffi = FFI()
+#
+# ffi.cdef("""
+# typedef struct uart_valid_data_out uart_valid_data_out;
+# struct uart_valid_data_out
+# {
+#     uint8_t     haveData;
+#     uint8_t 	Header[2];
+#     uint8_t 	Length;
+#     uint8_t 	Opcode[2];
+#     uint8_t		Message[118];
+# };
+# uart_valid_data_out GWIF_ProcessData (void);
+# """
+#          )
+#
+# so_file = "/root/RIIM_AI_VER19.so"
+#
+# ctypes_lib = CDLL(so_file)
+# ctypes_lib.GWIF_Init()
+#
+# cffi_lib = ffi.dlopen(so_file)
+# uart_valid_data_out = ffi.new("struct uart_valid_data_out *")
+
 mqtt = Mqtt(logger)
 mqtt.connect()
 mqttHandler = MqttDataHandler(logger, mqtt)
 
 uart = Uart(logger)
-uart.connect()
+# uart.connect()
 uartHandler = UartDataHandler(logger, uart)
 
 db = Db()
@@ -86,21 +113,43 @@ def thread_2():
     asyncio.run(hc.hc_thread_report_interval())
 
 
-def thread_3():
-    hc.hc_receive_uart_data()
+# def thread_5():
+#     while True:
+#         with threading.Lock():
+#             ctypes_lib.GWIF_Read2Buffer()
+#             ctypes_lib.GWIF_CheckData()
+#
+#
+# def thread_6():
+#     r = list()
+#     while True:
+#         uart_valid_data_out = cffi_lib.GWIF_ProcessData()
+#         if uart_valid_data_out.haveData == 1:
+#             r.append(uart_valid_data_out.Header[0])
+#             r.append(uart_valid_data_out.Header[1])
+#             r.append(uart_valid_data_out.Opcode[0])
+#             r.append(uart_valid_data_out.Opcode[1])
+#             r.append(uart_valid_data_out.Length)
+#             for i in range(0, uart_valid_data_out.Length):
+#                 r.append(uart_valid_data_out.Message[i])
+#             print(f"valid data list:{r}")
+#             r.clear()
 
 
-def thread_4():
-    hc.hc_handler_uart_data()
+def thread_7():
+    pass
 
+def thread_8():
+    pass
 
 def main():
     threads = list()
 
     threads.append(threading.Thread(target=thread_1, args=()))
     threads.append(threading.Thread(target=thread_2, args=()))
-    threads.append(threading.Thread(target=thread_3, args=()))
-    threads.append(threading.Thread(target=thread_4, args=()))
+    # threads.append(threading.Thread(target=thread_4, args=()))
+    # threads.append(threading.Thread(target=thread_5, args=()))
+    # threads.append(threading.Thread(target=thread_6, args=()))
 
     [thread.start() for thread in threads]
     [thread.join() for thread in threads]

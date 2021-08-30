@@ -46,6 +46,19 @@ class RdHc:
     def hc_update_devices_online_status_to_global_dict(self):
         self.__systemHelper.update_devices_online_status_to_global_dict()
 
+    def hc_handler_uart_cmd(self):
+        while True:
+            if self.__globalVariables.on_uart_cmd_processing:
+                switcher = {
+                    "ConfigGWRF": self.uartCmdNameConfigGWRFHandler,
+                }
+                func = switcher.get(self.__globalVariables.uart_cmd_dict.get("name"))
+                func()
+
+    def uartCmdNameConfigGWRFHandler(self):
+        pass
+
+
     def hc_receive_uart_data(self):
         while True:
             time.sleep(0.1)
@@ -125,10 +138,10 @@ class RdHc:
             self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
             await asyncio.sleep(Const.HC_REPORT_DEVICE_REPORT_INTERVAL)
 
-    async def __hc_send_devices_state(self):
+    async def __hc_send_devices_status(self):
         while True:
             print("hc report device state")
-            device_state_mes = self.__systemHelper.send_devices_state()
+            device_state_mes = self.__systemHelper.send_devices_status()
             self.__mqttServices.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(device_state_mes))
             await asyncio.sleep(Const.HC_REPORT_DEVICE_STATE_INTERVAL)
 
@@ -146,7 +159,6 @@ class RdHc:
 
     def hc_handler_mqtt_data(self):
         while True:
-            time.sleep(0.1)
             if not self.__mqttServices.receive_data_queue.empty():
                 with self.__lock:
                     item = self.__mqttServices.receive_data_queue.get()
@@ -155,7 +167,7 @@ class RdHc:
 
     async def hc_thread_report_interval(self):
         task1 = asyncio.create_task(self.__hc_check_connect_with_cloud())
-        task2 = asyncio.create_task(self.__hc_send_devices_state())
+        task2 = asyncio.create_task(self.__hc_send_devices_status())
         task3 = asyncio.create_task(self.__hc_update_devices_online_status_from_db_to_global_dict())
         task4 = asyncio.create_task(self.__hc_check_heartbeat_and_update_devices_online_status_to_db())
         task5 = asyncio.create_task(self.__hc_send_device_report())

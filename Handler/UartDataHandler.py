@@ -14,4 +14,7 @@ class UartDataHandler(IHandler):
         self.__uart = uart
 
     def handler(self, item):
-        print(item)
+        opcode = item[2] << 8 | item[3]
+        switcher = {
+
+        }

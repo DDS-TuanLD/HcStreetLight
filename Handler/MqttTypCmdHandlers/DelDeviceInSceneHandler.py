@@ -53,7 +53,7 @@ class DelDeviceInSceneHandler(IMqttTypeCmdHandler):
             )
         )
 
-        self.__cmd_res(data.get("ID"), devices_delete_list, groups_delete_list)
+        # self.__cmd_res(data.get("ID"), devices_delete_list, groups_delete_list)
 
     def __cmd_res(self, scene: int, devices: list, groups: list):
         res = {

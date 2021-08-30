@@ -22,6 +22,11 @@ from Handler.MqttTypCmdHandlers.RequestInforHandler import RequestInforHandler
 from Handler.MqttTypCmdHandlers.SetSceneHandler import SetSceneHandler
 from Handler.MqttTypCmdHandlers.StopSceneHandler import StopSceneHandler
 from Handler.MqttTypCmdHandlers.AddDeviceHandler import AddDeviceHandler
+from Handler.MqttTypCmdHandlers.SetGwSceneHandler import SetGwSceneHandler
+from Handler.MqttTypCmdHandlers.StopGwSceneHandler import StopGwSceneHandler
+from Handler.MqttTypCmdHandlers.DelGwSceneHandler import DelGwSceneHandler
+from Handler.MqttTypCmdHandlers.ActiveGwSceneHandler import ActiveGwSceneHandler
+
 from Constracts import ITransport
 import logging
 
@@ -52,6 +57,26 @@ class TypeCmdHandlerManager:
         self.__setSceneHandler = SetSceneHandler(log, mqtt)
         self.__stopSceneHandler = StopSceneHandler(log, mqtt)
         self.__addDeviceHandler = AddDeviceHandler(log, mqtt)
+        self.__setGwSceneHandler = SetGwSceneHandler(log, mqtt)
+        self.__stopGwSceneHandler = StopGwSceneHandler(log, mqtt)
+        self.__delGwSceneHandler = DelGwSceneHandler(log, mqtt)
+        self.__activeGwSceneHandler = ActiveGwSceneHandler(log, mqtt)
+
+    @property
+    def ActiveGwScene(self):
+        return self.__activeGwSceneHandler
+
+    @property
+    def DelGwScene(self):
+        return self.__delGwSceneHandler
+
+    @property
+    def StopGwScene(self):
+        return self.__stopGwSceneHandler
+
+    @property
+    def SetGwScene(self):
+        return self.__setGwSceneHandler
 
     @property
     def ActiveScene(self):

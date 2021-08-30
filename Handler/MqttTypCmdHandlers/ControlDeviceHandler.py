@@ -24,20 +24,28 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
         devices_control_list = data.get("Device", [])
-        groups_control_list = data.get("group", [])
+        groups_control_list = data.get("groups", [])
         devices_property = []
 
         with threading.Lock():
-            rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
-                db.Table.GroupDeviceMappingTable.c.GroupId.in_(groups_control_list)
-            )
-        for r in rel:
-            devices_control_list.append(r["DeviceAddress"])
+            for g in groups_control_list:
+                rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
+                    db.Table.GroupDeviceMappingTable.c.GroupId == g["group"]
+                )
+                if g["Type"] == 0:
+                    for r in rel:
+                        devices_control_list.append(r["DeviceAddress"])
+                if g["Type"] == 1:
+                    for r in rel:
+                        if r["Number"] % 2 == 1:
+                            devices_control_list.append(r["DeviceAddress"])
+                if g["Type"] == 2:
+                    for r in rel:
+                        if r["Number"] % 2 == 0:
+                            devices_control_list.append(r["DeviceAddress"])
 
         unique_devices_control_list = set(devices_control_list)
         for d in unique_devices_control_list:
-            device_dim_property = {}
-            device_relay_property = {}
             if data.get("DIM") is not None:
                 device_dim_property = {
                     "b_DeviceAddress": d,
@@ -55,7 +63,7 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                 devices_property.append(device_relay_property)
         with threading.Lock():
             db.Services.DevicePropertyService.UpdateManyDevicePropertyMappingCustomByConditionType1(devices_property)
-        self.__cmd_res(list(unique_devices_control_list))
+        # self.__cmd_res(list(unique_devices_control_list))
 
     def __cmd_res(self, devs: list):
         db = Db()

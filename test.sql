@@ -1,1 +1,1 @@
-DROP Table Gateway;
+DROP Table Group;

@@ -44,7 +44,16 @@ class GetGatewayInForHandler(IMqttTypeCmdHandler):
             "Relay_1": gateway_info.get("Relay_1"),
             "Relay_2": gateway_info.get("Relay_2"),
             "Relay_3": gateway_info.get("Relay_3"),
-            "Relay_4": gateway_info.get("Relay_4")
+            "Relay_4": gateway_info.get("Relay_4"),
+            "Scene_1": gateway_info.get("Scene_1"),
+            "Scene_2": gateway_info.get("Scene_2"),
+            "Scene_3": gateway_info.get("Scene_3"),
+            "Scene_4": gateway_info.get("Scene_4"),
+            "Minute_1": gateway_info.get("Minute_1"),
+            "Minute_2": gateway_info.get("Minute_2"),
+            "Minute_3": gateway_info.get("Minute_3"),
+            "Minute_4": gateway_info.get("Minute_4"),
+
         }
         with threading.Lock():
             self.globalVariable.mqtt_need_response_dict[gateway_info_res["RQI"]] = gateway_info_res
