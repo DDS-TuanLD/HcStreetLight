@@ -2,7 +2,6 @@ import paho.mqtt.client as mqtt
 import Constants.Constant as Const
 import logging
 import threading
-import socket
 from Constracts.ITransport import ITransport
 
 
@@ -14,15 +13,13 @@ class MqttConfig:
     username: str
     password: str
 
-    def __init__(self):
-        hostname = socket.gethostname()
-        ip = socket.gethostbyname(hostname)
-        self.host = ip
-        self.port = Const.MQTT_PORT
-        self.qos = Const.MQTT_QOS
-        self.keep_alive = Const.MQTT_KEEP_ALIVE
-        self.username = Const.MQTT_USER
-        self.password = Const.MQTT_PASS
+    def __init__(self, host: str, port: int, qos: int, keep_alive: int, username: str, password: str):
+        self.host = host
+        self.port = port
+        self.qos = qos
+        self.keep_alive = keep_alive
+        self.username = username
+        self.password = password
 
 
 class Mqtt(ITransport):
@@ -31,10 +28,10 @@ class Mqtt(ITransport):
     __logger: logging.Logger
     __lock: threading.Lock
 
-    def __init__(self, log: logging.Logger):
+    def __init__(self, log: logging.Logger, config: MqttConfig):
         super().__init__()
         self.__logger = log
-        self.__mqttConfig = MqttConfig()
+        self.__mqttConfig = config
         self.__client = mqtt.Client()
         self.__lock = threading.Lock()
 
@@ -72,5 +69,3 @@ class Mqtt(ITransport):
     def receive(self):
         pass
 
-    def is_readable(self):
-        pass

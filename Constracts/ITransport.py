@@ -29,7 +29,3 @@ class ITransport(metaclass=ABCMeta):
     @abstractmethod
     def receive(self):
         return
-
-    @abstractmethod
-    def is_readable(self):
-        return

@@ -5,12 +5,14 @@ import threading
 from Database.Db import Db
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from HcServices.Mqtt import Mqtt
+from HcServices.Mqtt import Mqtt, MqttConfig
 from Handler.MqttDataHandler import MqttDataHandler
 import os
 from ctypes import *
 import Constants.Constant as Const
 from Handler.DeviceDataHandler import DeviceDataHandler
+import socket
+
 
 lib = cdll.LoadLibrary("/root/libHC_Riim_Cpp.so")
 
@@ -31,7 +33,15 @@ logging_handler.setFormatter(logging_formatter)
 logger.addHandler(logging_handler)
 logger.setLevel(logging.DEBUG)
 
-mqtt = Mqtt(logger)
+hostname = socket.gethostname()
+ip = socket.gethostbyname(hostname)
+        
+mqttConfig = MqttConfig(
+    host=ip, port = Const.MQTT_PORT, qos = Const.MQTT_QOS, keep_alive = Const.MQTT_KEEP_ALIVE, 
+    username = Const.MQTT_USER, password = Const.MQTT_PASS
+)
+       
+mqtt = Mqtt(logger, mqttConfig)
 mqtt.connect()
 mqttHandler = MqttDataHandler(logger, mqtt)
 
