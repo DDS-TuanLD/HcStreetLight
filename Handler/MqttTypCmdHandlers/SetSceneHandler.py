@@ -32,9 +32,7 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             self.__remove_all_event_data(data.get("ID"))
             r = self.__save_new_scene_to_db(data)
 
-        # self.__cmd_res(data.get("ID"), r)
-
-    def __save_new_scene_to_db(self, data) -> dict:
+    def __save_new_scene_to_db(self, data):
         db = Db()
         db.Services.EventTriggerService.InsertEventTrigger(
             {
@@ -79,7 +77,7 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             devices_setup_input_insert
         )
 
-    def __save_output_action_to_db(self, data) -> dict:
+    def __save_output_action_to_db(self, data):
         db = Db()
 
         devices_output_action = data.get("execute").get("device_action", [])
@@ -195,29 +193,4 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             db.Table.EventTriggerTable.c.EventTriggerId == event
         )
 
-    def __cmd_res(self, scene: int, r: dict):
-        res = {"RQI": str(uuid.uuid4()), "TYPCMD": "SetSceneRsp", "ID": scene, "Devices": [], "Groups": []}
-        for d in r.get("device_success", []):
-            res["Devices"].append({
-                "Device": d,
-                "Success": True
-            })
-        for d in r.get("device_failure", []):
-            res["Devices"].append({
-                "Device": d,
-                "Success": False
-            })
-        for g in r.get("group_success", []):
-            res["Groups"].append({
-                "GroupId": g,
-                "Success": True
-            })
-        for g in r.get("group_failure", []):
-            res["Groups"].append({
-                "GroupId": g,
-                "Success": False
-            })
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
 

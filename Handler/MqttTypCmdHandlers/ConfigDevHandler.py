@@ -78,6 +78,20 @@ class ConfigDevHandler(IMqttTypeCmdHandler):
         }
         self.__cmd_res(result)
 
+        for d in devices:
+            cmd_send_to_device = update_data
+            cmd_send_to_device["TYPCMD"] = data.get("TYPCMD")
+            cmd_send_to_device["Device"] = d
+            self.addConfigQueue(cmd_send_to_device)
+
+        for g in groups:
+            cmd_send_to_device = update_data
+            cmd_send_to_device["TYPCMD"] = data.get("TYPCMD")
+            cmd_send_to_device["Group"] = g
+            self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
+
     def __cmd_res(self, result: dict):
         db = Db()
         res = {

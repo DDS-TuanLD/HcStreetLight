@@ -9,7 +9,6 @@ from GlobalVariables.GlobalVariables import GlobalVariables
 import Constants.Constant as Const
 import uuid
 import time
-from Helper.UartMessageHelper import UartMessageHelper
 
 
 class RdHc:
@@ -19,18 +18,15 @@ class RdHc:
     __mqttHandler: IHandler
     __systemHelper: System
     __globalVariables: GlobalVariables
-    __uart: ITransport
 
     def __init__(self, log: logging.Logger, mqtt: ITransport,
-                 mqtt_handler: IHandler, uart: ITransport, uart_handler: IHandler):
+                 mqtt_handler: IHandler):
         self.__logger = log
         self.__mqttServices = mqtt
         self.__lock = threading.Lock()
         self.__mqttHandler = mqtt_handler
         self.__systemHelper = System(self.__logger)
         self.__globalVariables = GlobalVariables()
-        self.__uart = uart
-        self.__uartHandler = uart_handler
 
     def hc_report_network_info(self):
         print("hc report network info")
@@ -45,68 +41,6 @@ class RdHc:
 
     def hc_update_devices_online_status_to_global_dict(self):
         self.__systemHelper.update_devices_online_status_to_global_dict()
-
-    def hc_handler_uart_cmd(self):
-        while True:
-            if self.__globalVariables.on_uart_cmd_processing:
-                switcher = {
-                    "ConfigGWRF": self.uartCmdNameConfigGWRFHandler,
-                }
-                func = switcher.get(self.__globalVariables.uart_cmd_dict.get("name"))
-                func()
-
-    def uartCmdNameConfigGWRFHandler(self):
-        pass
-
-
-    def hc_receive_uart_data(self):
-        while True:
-            time.sleep(0.1)
-            while self.__uart.is_readable():
-                c = self.__uart.receive()
-                if c == bytes():
-                    break
-                with self.__lock:
-                    self.__uart.receive_data_buf.append(int.from_bytes(c, 'big'))
-
-    def hc_handler_uart_data(self):
-        count = 0
-        trace_mes_len = 0
-        uart_mess_helper = UartMessageHelper()
-        while True:
-            time.sleep(0.1)
-            if len(self.__uart.receive_data_buf) > 3:
-                try:
-                    p = self.__uart.receive_data_buf.index(Const.UART_MESS_HEADER_RIIM_TO_AI_1, count)
-                    if self.__uart.receive_data_buf[p + 1] == Const.UART_MESS_HEADER_RIIM_TO_AI_2:
-                        if p == 0:
-                            trace_mes_len = self.__uart.receive_data_buf[p + 2]
-                        if len(self.__uart.receive_data_buf) < trace_mes_len + 3:
-                            break
-                        buf = self.__uart.receive_data_buf[0: trace_mes_len + 3]
-                        ok = uart_mess_helper.check_uart_crc_mess(buf)
-                        if ok:
-                            self.__uartHandler.handler(buf)
-                            for i in range(0, trace_mes_len + 3):
-                                self.__uart.receive_data_buf.pop(0)
-                            trace_mes_len = 0
-                        if not ok:
-                            count += 1
-                        if p != 0:
-                            if trace_mes_len == 0:
-                                for i in range(0, p):
-                                    self.__uart.receive_data_buf.pop(0)
-                            if trace_mes_len != 0:
-                                if (p >= trace_mes_len + 3) or (trace_mes_len + 3 > p >= trace_mes_len + 1):
-                                    for i in range(0, p):
-                                        self.__uart.receive_data_buf.pop(0)
-                                    trace_mes_len = count = 0
-                        continue
-                    if self.__uart.receive_data_buf[p + 1] != Const.UART_MESS_HEADER_RIIM_TO_AI_2:
-                        count += p
-                except:
-                    if count > 0:
-                        count = 0
 
     async def __hc_retry_send_mqtt_mess(self):
         while True:
@@ -158,7 +92,9 @@ class RdHc:
             await asyncio.sleep(Const.HC_PING_TO_CLOUD_INTERVAL)
 
     def hc_handler_mqtt_data(self):
+        delay_time = 1
         while True:
+            time.sleep(delay_time)
             if not self.__mqttServices.receive_data_queue.empty():
                 with self.__lock:
                     item = self.__mqttServices.receive_data_queue.get()

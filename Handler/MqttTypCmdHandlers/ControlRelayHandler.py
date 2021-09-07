@@ -23,7 +23,7 @@ class ControlRelayHandler(IMqttTypeCmdHandler):
         relays_control = data.get("Control")
         db.Services.GatewayService.UpdateGatewayById(Const.GATEWAY_ID, relays_control)
 
-        # self.__cmd_res()
+        self.__cmd_res()
 
     def __cmd_res(self):
         db = Db()

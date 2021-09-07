@@ -38,20 +38,12 @@ class DelDevHandler(IMqttTypeCmdHandler):
         db.Services.EventTriggerOutputDeviceSetupValueService.RemoveEventTriggerOutputDeviceSetupValueByCondition(
             db.Table.EventTriggerOutputDeviceSetupValueTable.c.DeviceAddress.in_(devices)
         )
-        # self.__cmd_res(devices)
-
-    def __cmd_res(self, devices: list):
-        res = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "DelDevRsp",
-            "Devices": []
-        }
+        
         for d in devices:
-            res["Devices"].append({
-                "Device": d,
-                "Success": True
-            })
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-
+            cmd_send_to_device = {
+                "TYPCMD": data.get("TYPCMD"),
+                "Device": d
+            }
+            self.addControlQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addControlQueue)
+        self.waiting_for_handler_cmd()

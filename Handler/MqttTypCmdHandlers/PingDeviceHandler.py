@@ -19,3 +19,12 @@ class PingDeviceHandler(IMqttTypeCmdHandler):
             "Success": True
         }
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(res))
+
+        cmd_send_to_device = {
+            "TYPCMD": "PingDeviceRsp",
+            "Device": data.get("Device")
+        }
+
+        self.addControlQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addControlQueue)
+        self.waiting_for_handler_cmd()

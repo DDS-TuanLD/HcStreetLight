@@ -42,16 +42,4 @@ class DelSceneHandler(IMqttTypeCmdHandler):
         db.Services.EventTriggerService.RemoveEventTriggerByCondition(
             db.Table.EventTriggerTable.c.EventTriggerId == event_delete
         )
-        # self.__cmd_res(event_delete, True)
-
-    def __cmd_res(self, event_id: int, success: bool):
-        res = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "DelSceneRsp",
-            "ID": event_id,
-            "Success": success
-        }
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-
+      

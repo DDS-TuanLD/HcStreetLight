@@ -13,9 +13,7 @@ class GlobalVariables(metaclass=MetaGlobalVariables):
         self.__devices_heartbeat_dict = {}
         self.__mqtt_need_response_dict = {}
         self.__on_uart_cmd_processing = False
-        self.__uart_cmd_dict = {"name": str, "content": []}
-        self.__uart_cmd_rel = {}
-
+       
     @property
     def devices_online_status_dict(self):
         return self.__devices_online_status_dict
@@ -36,11 +34,4 @@ class GlobalVariables(metaclass=MetaGlobalVariables):
     def on_uart_cmd_processing(self, _on_uart_cmd_processing: bool):
         self.__on_uart_cmd_processing = _on_uart_cmd_processing
 
-    @property
-    def uart_cmd_dict(self):
-        return self.__uart_cmd_dict
-
-    @property
-    def uart_cmd_rel(self):
-        return self.__uart_cmd_rel
 

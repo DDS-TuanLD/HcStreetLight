@@ -31,30 +31,14 @@ class DelDevFrGroupHandler(IMqttTypeCmdHandler):
                  db.Table.GroupDeviceMappingTable.c.DeviceAddress.in_(devices)
                  )
         )
-        r = {
-            "devices_success": devices,
-            "devices_failure": []
-        }
-        # self.__cmd_res(groupId, r)
-
-    def __cmd_res(self, group: int, r: dict):
-        res = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "DelDevFrGroupRsp",
-            "GroupID": group,
-            "Devices": []
-        }
-        for d in r.get("devices_success", []):
-            res["Devices"].append({
-                "Device": d,
-                "Success": True
-            })
-        for d in r.get("devices_failure", []):
-            res["Devices"].append({
-                "Device": d,
-                "Success": False
-            })
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-
+        
+        for d in devices:
+            cmd_send_to_device = {
+                "TYPCMD": data.get("TYPCMD"),
+                "GroupId": groupId,
+                "Device": d
+            }
+            self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
+     

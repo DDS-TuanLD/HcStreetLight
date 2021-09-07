@@ -22,19 +22,26 @@ class DelGroupHandler(IMqttTypeCmdHandler):
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
         group_delete = data.get("GroupID")
+        device_in_group = []
+
+        rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
+            db.Table.GroupDeviceMappingTable.c.GroupId == group_delete
+        )
+
+        for r in rel:
+            device_in_group.append(r["DeviceAddress"])
+
         db.Services.GroupDeviceMappingService.RemoveGroupDeviceMappingByCondition(
             db.Table.GroupDeviceMappingTable.c.GroupId == group_delete
         )
-        # self.__cmd_res(group_delete)
 
-    def __cmd_res(self, group: int):
-        res = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "DelGroupRsp",
-            "GroupID": group,
-            "Success": True
-        }
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-
+        for d in device_in_group:
+            cmd_send_to_device = {
+                "TYPCMD": "DelDevFrGroup",
+                "GroupId": group_delete,
+                "Device": d
+            }
+            self.addConfigQueue(d)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
+      

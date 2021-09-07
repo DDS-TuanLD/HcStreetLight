@@ -19,9 +19,6 @@ class MqttDataHandler(IHandler):
         self.__mqttTypeCmdHandlerManager = TypeCmdHandlerManager(log, mqtt)
 
     def handler(self, item):
-        # print(f"data from mqtt: {item}")
-        # self.__logger.debug(f"data from mqtt: {item}")
-
         topic = item['topic']
         message = item['msg']
         switcher = {
@@ -33,9 +30,6 @@ class MqttDataHandler(IHandler):
         return
 
     def __handler_cloud_to_device_request_topic(self, data):
-        rqi: str
-        cmd: str
-
         try:
             json_data = json.loads(data)
             cmd = json_data.get("TYPCMD")

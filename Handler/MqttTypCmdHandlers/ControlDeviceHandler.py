@@ -26,7 +26,7 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
         devices_control_list = data.get("Device", [])
         groups_control_list = data.get("groups", [])
         devices_property = []
-
+        
         with threading.Lock():
             for g in groups_control_list:
                 rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
@@ -43,7 +43,7 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                     for r in rel:
                         if r["Number"] % 2 == 0:
                             devices_control_list.append(r["DeviceAddress"])
-
+                            
         unique_devices_control_list = set(devices_control_list)
         for d in unique_devices_control_list:
             if data.get("DIM") is not None:
@@ -63,101 +63,24 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                 devices_property.append(device_relay_property)
         with threading.Lock():
             db.Services.DevicePropertyService.UpdateManyDevicePropertyMappingCustomByConditionType1(devices_property)
-        # self.__cmd_res(list(unique_devices_control_list))
 
-    def __cmd_res(self, devs: list):
-        db = Db()
-        with threading.Lock():
-            rel = db.Services.DeviceService.FindDeviceByCondition(
-                db.Table.DeviceTable.c.DeviceAddress.in_(devs)
-            )
-        devices = rel.fetchall()
+        data.pop("Device")
+        data.pop("groups")
+        data.pop("RQI")
+        data.pop("TYPCMD")
 
-        with threading.Lock():
-            rel2 = db.Services.DevicePropertyService.FindDevicePropertyMappingByCondition(
-                db.Table.DevicePropertyMappingTable.c.DeviceAddress.in_(devs)
-            )
-        devicesPropertyMapping = rel2.fetchall()
+        for d in devices_control_list:
+            cmd_send_to_device = data
+            cmd_send_to_device["TYPCMD"] = "ControlDevice"
+            cmd_send_to_device["Device"] = d
+            self.addControlQueue(cmd_send_to_device)
 
-        with threading.Lock():
-            rel3 = db.Services.GatewayService.FindGatewayById(Const.GATEWAY_ID)
-        gateway = dict(rel3.fetchone())
+        for g in groups_control_list:
+            cmd_send_to_device = data
+            cmd_send_to_device["TYPCMD"] = "ControlGroup"
+            cmd_send_to_device["group"] = g.get("group")
+            cmd_send_to_device["Type"] = g.get("Type")
+            self.addConfigQueue(cmd_send_to_device)
 
-        res = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "DeviceStatus",
-            "Gateway": {
-                "Temp": gateway.get("Temp"),
-                "Lux": gateway.get("Lux"),
-                "U": gateway.get("U"),
-                "I": gateway.get("I"),
-                "Cos": gateway.get("Cos"),
-                "P": gateway.get("P"),
-                "Minute": gateway.get("Minute"),
-                "KWh": gateway.get("KWH"),
-                "Scene": gateway.get("Scene"),
-                "Relay": gateway.get("Relay_1") | gateway.get("Relay_2") | gateway.get("Relay_3") | gateway.get("Relay_4"),
-                "Status": gateway.get("Status")
-            },
-            "Devices": []
-        }
-
-        temp = {}
-
-        if len(devices) != 0:
-            for device in devices:
-                temp[device["DeviceAddress"]] = {
-                    "Device": device["DeviceAddress"],
-                    "Online": device["IsOnline"],
-                    "Status": 0,
-                    "Scene": device["CurrentRunningScene"],
-                    "Relay": bool(),
-                    "DIM": 0,
-                    "Temp": 0,
-                    "Lux": 0,
-                    "U": 0,
-                    "I": 0,
-                    "Cos": 0,
-                    "P": 0,
-                    "KWh": device['KWH']
-                }
-
-        if len(devicesPropertyMapping) != 0:
-            for devicePropertyMapping in devicesPropertyMapping:
-                r = devicePropertyMapping
-                if r["PropertyId"] == Const.PROPERTY_RELAY_ID:
-                    if r["PropertyValue"] == 0:
-                        temp[r["DeviceAddress"]]["Relay"] = False
-                    if r["PropertyValue"] == 1:
-                        temp[r["DeviceAddress"]]["Relay"] = True
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_DIM_ID:
-                    temp[r["DeviceAddress"]]["DIM"] = int(r["PropertyValue"])
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_P_ID:
-                    temp[r["DeviceAddress"]]["P"] = r["PropertyValue"]
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_TEMP_ID:
-                    temp[r["DeviceAddress"]]["Temp"] = r["PropertyValue"]
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_LUX_ID:
-                    temp[r["DeviceAddress"]]["Lux"] = r["PropertyValue"]
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_U_ID:
-                    temp[r["DeviceAddress"]]["U"] = r["PropertyValue"]
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_I_ID:
-                    temp[r["DeviceAddress"]]["I"] = r["PropertyValue"]
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_COS_ID:
-                    temp[r["DeviceAddress"]]["Cos"] = r["PropertyValue"]
-                    continue
-                if r["PropertyId"] == Const.PROPERTY_KWH_ID:
-                    temp[r["DeviceAddress"]]["KWh"] = r["PropertyValue"]
-                    continue
-
-        for t in temp:
-            res["Devices"].append(temp[t])
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
+        self.send_ending_cmd(self.addControlQueue)
+        self.waiting_for_handler_cmd()

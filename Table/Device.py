@@ -26,6 +26,7 @@ class Device:
                             Column('LMax', Float),
                             Column('LMin', Float),
                             Column('ActiveTime', Integer),
+                            Column('UpdateTime', Integer),
                             Column('CurrentRunningScene', Integer),
                             Column('Status', Integer),
                             Column('IsOnline', Boolean),

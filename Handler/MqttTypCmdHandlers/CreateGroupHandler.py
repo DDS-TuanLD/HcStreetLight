@@ -68,33 +68,16 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
                 group_device_mapping_dict_list.append(group_device_mapping)
 
             db.Services.GroupDeviceMappingService.InsertManyGroupDeviceMapping(group_device_mapping_dict_list)
-
-        # r = {
-        #     "devices_success": devices,
-        #     "devices_failure": []
-        # }
-        # self.__cmd_res(groupId, r)
-
-    def __cmd_res(self, group: int, rel: dict):
-        res = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "CreateGroupRsp",
-            "GroupID": group,
-            "Devices": []
-        }
-        for d in rel.get("devices_success", []):
-            device = {
-                "Device": d,
-                "Success": True
+        
+        for d in devices:
+            cmd_send_to_device = {
+                "TYPCMD": data.get("TYPCMD"),
+                "GroupID": groupId,
+                "Device": d.get("Device"),
+                "ID": d.get("ID")
             }
-            res["Devices"].append(device)
-        for d in rel.get("devices_failure", []):
-            device = {
-                "Device": d,
-                "Success": False
-            }
-            res["Devices"].append(device)
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
+            self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
 
+        

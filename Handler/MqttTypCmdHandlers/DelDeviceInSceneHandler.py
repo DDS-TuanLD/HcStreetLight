@@ -52,27 +52,3 @@ class DelDeviceInSceneHandler(IMqttTypeCmdHandler):
                 db.Table.EventTriggerOutputGroupSetupValueTable.c.GroupId.in_(groups_delete_list)
             )
         )
-
-        # self.__cmd_res(data.get("ID"), devices_delete_list, groups_delete_list)
-
-    def __cmd_res(self, scene: int, devices: list, groups: list):
-        res = {
-            "RQI": str(uuid.uuid4()),
-            "TYPCMD": "DelDeviceInSceneRsp",
-            "ID": scene,
-            "Devices": [],
-            "Groups": []
-        }
-        for d in devices:
-            res["Devices"].append({
-                "Device": d,
-                "Success": True
-            })
-        for g in groups:
-            res["Groups"].append({
-                "Group": g,
-                "Success": True
-            })
-        with threading.Lock():
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-        self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))

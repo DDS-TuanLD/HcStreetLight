@@ -6,6 +6,7 @@ import Constants.Constant as Const
 import json
 from Database.Db import Db
 import threading
+import time
 
 
 class AddDeviceHandler(IMqttTypeCmdHandler):
@@ -55,6 +56,7 @@ class AddDeviceHandler(IMqttTypeCmdHandler):
                     'LMax': float(),
                     'LMin': float(),
                     'ActiveTime': int(),
+                    'UpdateTime': int(),
                     'CurrentRunningScene': int(),
                     'Status': int(),
                     'IsOnline': False,
@@ -77,47 +79,14 @@ class AddDeviceHandler(IMqttTypeCmdHandler):
             with threading.Lock():
                 db.Services.DeviceService.InsertMany(devices_data_add)
                 db.Services.DevicePropertyService.InsertManyDevicePropertyMapping(devices_property_mapping_add)
-        r = {
-            "devices_same": devices_same,
-            "devices_add": devices_add
+
+        cmd_send_to_device = {
+            "TYPCMD": data.get("TYPCMD"),
+            "NumDevice": len(data.get("Device", []))
         }
-        # self.__cmd_res(r)
-
-    def __cmd_res(self, r: dict):
-        db = Db()
-        for d in r["devices_add"]:
-            res = {
-                "RQI": str(uuid.uuid4()),
-                "TYPCMD": "NewDevice",
-                "Device": d,
-                "GPS": {
-                    "Lat": "0",
-                    "Long": "0"
-                },
-                "TXPower": 0,
-                "FirmVer": "1.1"
-            }
-
-            self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-            self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-        with threading.Lock():
-            rel = db.Services.DeviceService.FindDeviceByCondition(
-                db.Table.DeviceTable.c.DeviceAddress.in_(r["devices_same"])
-            )
-        devices = rel.fetchall()
-        for d in devices:
-            res = {
-                "RQI": str(uuid.uuid4()),
-                "TYPCMD": "NewDevice",
-                "Device": d["DeviceAddress"],
-                "GPS": {
-                    "Lat": d["Latitude"],
-                    "Long": d["Longitude"]
-                },
-                "TXPower": d["TXPower"],
-                "FirmVer": d["FirmwareVersion"]
-            }
-            with threading.Lock():
-                self.globalVariable.mqtt_need_response_dict[res["RQI"]] = res
-            self.mqtt.send(Const.MQTT_DEVICE_TO_CLOUD_REQUEST_TOPIC, json.dumps(res))
-
+        
+        self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
+       
+       

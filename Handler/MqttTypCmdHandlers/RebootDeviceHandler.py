@@ -20,3 +20,12 @@ class RebootDeviceHandler(IMqttTypeCmdHandler):
 
         self.mqtt.send(Const.MQTT_CLOUD_TO_DEVICE_RESPONSE_TOPIC, json.dumps(mqttReceiveCommandResponse))
 
+        devices = data.get("MAC", [])
+        for d in devices:
+            cmd_send_to_device = {
+                "TYPCMD": data.get("TYPCMD"),
+                "MAC": d
+            }
+            self.addControlQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addControlQueue)
+        self.waiting_for_handler_cmd()
