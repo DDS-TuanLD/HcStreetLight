@@ -26,11 +26,45 @@ class SetSceneHandler(IMqttTypeCmdHandler):
         event = rel.fetchone()
 
         if event is None:
-            r = self.__save_new_scene_to_db(data)
+            self.__save_new_scene_to_db(data)
 
         if event is not None:
             self.__remove_all_event_data(data.get("ID"))
-            r = self.__save_new_scene_to_db(data)
+            self.__save_new_scene_to_db(data)
+
+        devices_output_action = data.get("execute").get("device_action", [])
+        groups_output_action = data.get("execute").get("group_action", [])
+
+        for d in devices_output_action:
+            cmd_send_to_devivce = {
+                "TYPCMD": "SetDevScene",
+                "ID": data.get("ID"),
+                "script_type": data.get("script_type"),
+                "input_condition": data.get("input_condition"),
+                "execute": {
+                    "Device": d.get("Device"),
+                    "Relay": d.get("action").get("Relay"),
+                    "DIM": d.get("action").get("DIM")
+                }
+            }
+            self.addConfigQueue(cmd_send_to_devivce)
+
+        for g in groups_output_action:
+            cmd_send_to_devivce = {
+                "TYPCMD": "SetGroupScene",
+                "ID": data.get("ID"),
+                "script_type": data.get("script_type"),
+                "input_condition": data.get("input_condition"),
+                "execute": {
+                    "GroupId": g.get("GroupId"),
+                    "Relay": g.get("action").get("Relay"),
+                    "DIM": g.get("action").get("DIM"),
+                    "Type": g.get("action").get("Relay")
+                }
+            }
+            self.addConfigQueue(cmd_send_to_devivce)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
 
     def __save_new_scene_to_db(self, data):
         db = Db()
@@ -43,8 +77,7 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             }
         )
         self.__save_input_condition_to_db(data)
-        rel = self.__save_output_action_to_db(data)
-        return rel
+        self.__save_output_action_to_db(data)
 
     def __save_input_condition_to_db(self, data):
         db = Db()
@@ -57,16 +90,16 @@ class SetSceneHandler(IMqttTypeCmdHandler):
 
         for device_input_condition in devices_input_condition:
             device_mapping_input_insert = {
-                "EventTriggerId": data["ID"],
-                "DeviceAddress": device_input_condition["Device"],
+                "EventTriggerId": data.get("ID"),
+                "DeviceAddress": device_input_condition.get("Device"),
             }
 
             device_setup_input_insert = {
-                "EventTriggerId": data["ID"],
-                "DeviceAddress": device_input_condition["Device"],
-                "PropertyId": device_input_condition["condition"]["attribute"],
-                "PropertyValue": device_input_condition["condition"]["value"],
-                "Operation": device_input_condition["condition"]["operation"]
+                "EventTriggerId": data.get("ID"),
+                "DeviceAddress": device_input_condition.get("Device"),
+                "PropertyId": device_input_condition.get("condition").get("attribute"),
+                "PropertyValue": device_input_condition.get("condition").get("value"),
+                "Operation": device_input_condition.get("condition").get("operation")
             }
             devices_setup_input_insert.append(device_setup_input_insert)
             devices_mapping_input_insert.append(device_mapping_input_insert)
@@ -162,12 +195,6 @@ class SetSceneHandler(IMqttTypeCmdHandler):
             db.Services.EventTriggerOutputGroupSetupValueService.InsertEventTriggerOutputGroupSetupValue(
                 groups_output_setup_value
             )
-        return {
-            "device_success": devices_success_list,
-            "device_failure": [],
-            "group_success": groups_success_list,
-            "group_failure": []
-        }
 
     def __remove_all_event_data(self, event: int):
         db = Db()

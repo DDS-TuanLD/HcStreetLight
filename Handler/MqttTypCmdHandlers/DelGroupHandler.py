@@ -41,7 +41,7 @@ class DelGroupHandler(IMqttTypeCmdHandler):
                 "GroupId": group_delete,
                 "Device": d
             }
-            self.addConfigQueue(d)
+            self.addConfigQueue(cmd_send_to_device)
         self.send_ending_cmd(self.addConfigQueue)
         self.waiting_for_handler_cmd()
       

@@ -52,3 +52,21 @@ class DelDeviceInSceneHandler(IMqttTypeCmdHandler):
                 db.Table.EventTriggerOutputGroupSetupValueTable.c.GroupId.in_(groups_delete_list)
             )
         )
+
+        for d in devices_delete_list:
+            cmd_send_to_device = {
+                "TYPCMD": "DelDeviceInScene",
+                "ID": data.get("ID"),
+                "Device": d
+            }
+            self.addConfigQueue(cmd_send_to_device)
+
+        for g in groups_delete_list:
+            cmd_send_to_device = {
+                "TYPCMD": "DelGroupInScene",
+                "ID": data.get("ID"),
+                "group": g
+            }
+            self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()

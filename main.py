@@ -72,8 +72,10 @@ def thread_3():
     while True:
         b = c_char_p(lib.C_bufferPop(Const.RESPONSE_BUFFER)).value
         rel = b.decode('utf-8')
-        deviceHandler.handler(rel)
+        if rel != "":
+            deviceHandler.handler(rel)
         time.sleep(1)
+
 
 def main():
     threads = list()

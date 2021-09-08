@@ -37,4 +37,21 @@ class StopSceneHandler(IMqttTypeCmdHandler):
                 "IsEnable": False
             }
         )
-       
+
+        for d in devices_stop_list:
+            cmd_send_to_device = {
+                "TYPCMD": "StopDevScene",
+                "ID": data.get("ID"),
+                "Device": d
+            }
+            self.addConfigQueue(cmd_send_to_device)
+
+        for g in groups_stop_list:
+            cmd_send_to_device = {
+                "TYPCMD": "StopGroupScene",
+                "ID": data.get("ID"),
+                "group": g
+            }
+            self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()

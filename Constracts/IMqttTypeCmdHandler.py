@@ -42,6 +42,5 @@ class IMqttTypeCmdHandler(metaclass=ABCMeta):
             self.globalVariable.on_uart_cmd_processing = True       
         while self.globalVariable.on_uart_cmd_processing:
             time.sleep(1)
-        print("endding waiting handler cmd")
 
 

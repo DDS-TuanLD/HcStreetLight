@@ -42,4 +42,12 @@ class DelSceneHandler(IMqttTypeCmdHandler):
         db.Services.EventTriggerService.RemoveEventTriggerByCondition(
             db.Table.EventTriggerTable.c.EventTriggerId == event_delete
         )
+
+        cmd_send_to_device = {
+            "TYPCMD": data.get("TYPCMD"),
+            "ID": data.get("ID")
+        }
+        self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
       

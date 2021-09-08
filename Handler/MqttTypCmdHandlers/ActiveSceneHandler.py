@@ -38,4 +38,21 @@ class ActiveSceneHandler(IMqttTypeCmdHandler):
                     "IsEnable": True
                 }
             )
+        for d in devices_start_list:
+            cmd_send_to_device = {
+                "TYPCMD": "ActiveDevScene",
+                "ID": data.get("ID"),
+                "Device": d
+            }
+            self.addConfigQueue(cmd_send_to_device)
+
+        for g in groups_start_list:
+            cmd_send_to_device = {
+                "TYPCMD": "ActiveGroupScene",
+                "ID": data.get("ID"),
+                "group": g
+            }
+            self.addConfigQueue(cmd_send_to_device)
+        self.send_ending_cmd(self.addConfigQueue)
+        self.waiting_for_handler_cmd()
        

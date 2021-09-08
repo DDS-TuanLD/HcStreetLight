@@ -25,8 +25,9 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
 
         devices_control_list = data.get("Device", [])
         groups_control_list = data.get("groups", [])
+
         devices_property = []
-        
+
         with threading.Lock():
             for g in groups_control_list:
                 rel = db.Services.GroupDeviceMappingService.FindGroupDeviceMappingByCondition(
@@ -43,7 +44,6 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                     for r in rel:
                         if r["Number"] % 2 == 0:
                             devices_control_list.append(r["DeviceAddress"])
-                            
         unique_devices_control_list = set(devices_control_list)
         for d in unique_devices_control_list:
             if data.get("DIM") is not None:
@@ -61,25 +61,29 @@ class ControlDeviceHandler(IMqttTypeCmdHandler):
                     "b_PropertyValue": data.get("Relay")
                 }
                 devices_property.append(device_relay_property)
-        with threading.Lock():
-            db.Services.DevicePropertyService.UpdateManyDevicePropertyMappingCustomByConditionType1(devices_property)
 
-        data.pop("Device")
-        data.pop("groups")
-        data.pop("RQI")
-        data.pop("TYPCMD")
+        with threading.Lock():
+            if devices_property:
+                db.Services.DevicePropertyService.UpdateManyDevicePropertyMappingCustomByConditionType1(
+                    devices_property)
 
         for d in devices_control_list:
-            cmd_send_to_device = data
-            cmd_send_to_device["TYPCMD"] = "ControlDevice"
-            cmd_send_to_device["Device"] = d
+            cmd_send_to_device = {
+                "TYPCMD": "ControlDevice",
+                "Device": d,
+                "Relay": data.get("Relay"),
+                "DIM": data.get("DIM"),
+            }
             self.addControlQueue(cmd_send_to_device)
 
         for g in groups_control_list:
-            cmd_send_to_device = data
-            cmd_send_to_device["TYPCMD"] = "ControlGroup"
-            cmd_send_to_device["group"] = g.get("group")
-            cmd_send_to_device["Type"] = g.get("Type")
+            cmd_send_to_device = {
+                "TYPCMD": "ControlGroup",
+                "group": g.get("group"),
+                "Type": g.get("Type"),
+                "Relay": data.get("Relay"),
+                "DIM": data.get("DIM"),
+            }
             self.addConfigQueue(cmd_send_to_device)
 
         self.send_ending_cmd(self.addControlQueue)
