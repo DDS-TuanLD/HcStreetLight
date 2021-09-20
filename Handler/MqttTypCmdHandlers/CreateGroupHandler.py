@@ -21,7 +21,7 @@ class CreateGroupHandler(IMqttTypeCmdHandler):
 
         db = Db()
         groupId = data.get("GroupID")
-        devices = data.get("Device", [])
+        devices = data.get("Devices", [])
         devices_address = []
         for d in devices:
             devices_address.append(d.get("Device"))

@@ -13,7 +13,6 @@ import Constants.Constant as Const
 from Handler.DeviceDataHandler import DeviceDataHandler
 import socket
 
-
 lib = cdll.LoadLibrary("/root/libHC_Riim_Cpp.so")
 
 file_dir = os.path.dirname(__file__)
@@ -35,12 +34,12 @@ logger.setLevel(logging.DEBUG)
 
 hostname = socket.gethostname()
 ip = socket.gethostbyname(hostname)
-        
+
 mqttConfig = MqttConfig(
-    host=ip, port = Const.MQTT_PORT, qos = Const.MQTT_QOS, keep_alive = Const.MQTT_KEEP_ALIVE, 
-    username = Const.MQTT_USER, password = Const.MQTT_PASS
+    host=ip, port=Const.MQTT_PORT, qos=Const.MQTT_QOS, keep_alive=Const.MQTT_KEEP_ALIVE,
+    username=Const.MQTT_USER, password=Const.MQTT_PASS
 )
-       
+
 mqtt = Mqtt(logger, mqttConfig)
 mqtt.connect()
 mqttHandler = MqttDataHandler(logger, mqtt)
